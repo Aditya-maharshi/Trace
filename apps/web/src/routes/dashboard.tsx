@@ -27,10 +27,19 @@ function Dashboard() {
   const navigate = useNavigate();
   const [checkedAuth, setCheckedAuth] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const { data, narrative, loading, error, progressLog, lookup } = useAttributionStream();
 
   useEffect(() => {
     getConfig().then(c => setIsDemoMode(c.isDemoMode)).catch(console.error);
+    if (localStorage.getItem("trace_guest_session")) {
+      const demoProvider = localStorage.getItem("trace_demo_provider");
+      setUserEmail(demoProvider ? `${demoProvider} demo analyst` : "guest analyst");
+    } else {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user?.email) setUserEmail(user.email);
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -115,12 +124,19 @@ function Dashboard() {
             <History className="h-3.5 w-3.5" />
             History
           </Link>
+          {userEmail && (
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono bg-white/5 border border-white/10 text-white/70 mr-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              {userEmail}
+            </span>
+          )}
           <button
             id="signout-btn"
             onClick={async () => {
               localStorage.removeItem("trace_guest_session");
+              localStorage.removeItem("trace_demo_provider");
               await supabase.auth.signOut();
-              navigate({ to: "/login" });
+              navigate({ to: "/login", search: { switch: "true" } as any });
             }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-white/50 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer"
           >

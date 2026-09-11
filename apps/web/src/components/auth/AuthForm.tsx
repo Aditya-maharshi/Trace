@@ -17,6 +17,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [oauthFallbackProvider, setOauthFallbackProvider] = useState<"google" | "github" | null>(null);
+  const [existingSessionEmail, setExistingSessionEmail] = useState<string | null>(null);
 
   // Derived password strength: 4-segment check (length >= 8, uppercase, number, special character)
   const pwStrength = useMemo(() => {
@@ -29,10 +30,20 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
   }, [password]);
 
   useEffect(() => {
-    // 1. Check if redirected back with an OAuth error in URL hash or search params
     const hash = window.location.hash;
     const search = window.location.search;
     const params = new URLSearchParams(hash.startsWith("#") ? hash.substring(1) : search);
+
+    // 1. If explicitly switching accounts, sign out and clear demo sessions immediately
+    if (params.get("switch") === "true") {
+      localStorage.removeItem("trace_guest_session");
+      localStorage.removeItem("trace_demo_provider");
+      supabase.auth.signOut().catch(() => {});
+      setExistingSessionEmail(null);
+      return;
+    }
+
+    // 2. Check if redirected back with an OAuth error in URL hash or search params
     const errorDesc = params.get("error_description");
     const errorMsg = params.get("error");
 
@@ -54,13 +65,14 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
       return;
     }
 
-    if (localStorage.getItem("trace_guest_session")) {
-      navigate({ to: "/dashboard" });
-      return;
-    }
+    // 3. Clear guest session if visiting login/signup so user can choose their real account
+    localStorage.removeItem("trace_guest_session");
+    localStorage.removeItem("trace_demo_provider");
+
+    // 4. Check for active Supabase session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate({ to: "/dashboard" });
+      if (session?.user?.email) {
+        setExistingSessionEmail(session.user.email);
       }
     });
   }, [navigate]);
@@ -139,6 +151,10 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            prompt: "select_account",
+            access_type: "offline",
+          },
         },
       });
 
@@ -197,6 +213,9 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
         provider: "github",
         options: {
           redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            prompt: "select_account",
+          },
         },
       });
 
@@ -306,6 +325,54 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
               ? "Start tracing crypto wallets to their nearest exchange."
               : "Sign in to pick up where you left off."}
           </p>
+
+          {existingSessionEmail && (
+            <div className={`${styles.alertBox} ${styles.alertSuccess}`} style={{ marginBottom: 16 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "12px", color: "#2fe3a3" }}>
+                  <ShieldCheck style={{ width: 14, height: 14 }} />
+                  <span>Currently signed in as <strong>{existingSessionEmail}</strong></span>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => navigate({ to: "/dashboard" })}
+                    style={{
+                      flex: 1,
+                      background: "#f7931a",
+                      color: "#000",
+                      border: "none",
+                      borderRadius: "6px",
+                      padding: "6px 12px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Go to Dashboard →
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await supabase.auth.signOut();
+                      setExistingSessionEmail(null);
+                    }}
+                    style={{
+                      background: "rgba(255, 255, 255, 0.08)",
+                      color: "#fff",
+                      border: "1px solid rgba(255, 255, 255, 0.15)",
+                      borderRadius: "6px",
+                      padding: "6px 12px",
+                      fontSize: "12px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Switch Account
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {successMsg && (
             <div className={`${styles.alertBox} ${styles.alertSuccess}`}>
