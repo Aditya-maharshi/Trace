@@ -23,8 +23,17 @@ export async function middleware(request: NextRequest) {
   };
 
   // -----------------------------------------------------------------------
-  // 1. Preflight – exempt from auth & rate-limit (browser won't send the key
-  //    on the OPTIONS request, and blocking it kills the actual request).
+  // 0. Auto-relay to Frontend if an OAuth callback landed on the API server
+  // -----------------------------------------------------------------------
+  const pathname = request.nextUrl.pathname;
+  if (!pathname.startsWith("/api") && !pathname.startsWith("/_next") && pathname !== "/favicon.ico") {
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8083";
+    const targetUrl = new URL(pathname + request.nextUrl.search, frontendUrl);
+    return NextResponse.redirect(targetUrl);
+  }
+
+  // -----------------------------------------------------------------------
+  // 1. Preflight – exempt from auth & rate-limit
   // -----------------------------------------------------------------------
   if (request.method === "OPTIONS") {
     return new NextResponse(null, {
@@ -36,7 +45,6 @@ export async function middleware(request: NextRequest) {
   // -----------------------------------------------------------------------
   // 2. API-key authentication (public endpoints exempt)
   // -----------------------------------------------------------------------
-  const pathname = request.nextUrl.pathname;
   const isPublicRoute =
     pathname === "/api/prices" ||
     pathname === "/api/health" ||
@@ -101,7 +109,8 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-// Only apply CORS to /api routes
+// Match all requests except internal Next.js static assets so that OAuth callbacks
+// landing on the API server (e.g. localhost:3000/dashboard) are redirected to the frontend
 export const config = {
-  matcher: "/api/:path*",
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
