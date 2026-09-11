@@ -16,6 +16,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [oauthFallbackProvider, setOauthFallbackProvider] = useState<"google" | "github" | null>(null);
 
   // Derived password strength: 4-segment check (length >= 8, uppercase, number, special character)
   const pwStrength = useMemo(() => {
@@ -28,6 +29,31 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
   }, [password]);
 
   useEffect(() => {
+    // 1. Check if redirected back with an OAuth error in URL hash or search params
+    const hash = window.location.hash;
+    const search = window.location.search;
+    const params = new URLSearchParams(hash.startsWith("#") ? hash.substring(1) : search);
+    const errorDesc = params.get("error_description");
+    const errorMsg = params.get("error");
+
+    if (errorDesc || errorMsg) {
+      const decoded = decodeURIComponent(errorDesc || errorMsg || "");
+      if (
+        decoded.toLowerCase().includes("unsupported provider") ||
+        decoded.toLowerCase().includes("missing oauth secret") ||
+        decoded.toLowerCase().includes("not enabled")
+      ) {
+        setError(
+          "OAuth provider is not yet enabled in this Supabase project. You can sign in using Email & Password or click Demo Access below.",
+        );
+        setOauthFallbackProvider("google");
+      } else {
+        setError(decoded);
+      }
+      window.history.replaceState(null, "", window.location.pathname);
+      return;
+    }
+
     if (localStorage.getItem("trace_guest_session")) {
       navigate({ to: "/dashboard" });
       return;
@@ -43,6 +69,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
+    setOauthFallbackProvider(null);
 
     if (isSignup && password !== confirm) {
       setError("Passwords don't match.");
@@ -72,22 +99,15 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
           return;
         }
 
-        if (authData.user && !authData.session) {
-          setSuccessMsg(
-            "Account created! We've sent a verification email with a confirmation link. Please check your inbox and confirm before logging in.",
-          );
-          return;
-        }
-
-        // Real auth success path: trigger warp flourish before transition
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("trace-warp"));
-        }
-        setTimeout(() => {
+        if (authData.session) {
           navigate({ to: "/dashboard" });
-        }, 300);
+        } else {
+          setSuccessMsg(
+            "Account created! Please check your email inbox to confirm your address before logging in.",
+          );
+        }
       } else {
-        const { error: authError } = await supabase.auth.signInWithPassword({
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
@@ -98,13 +118,9 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
           return;
         }
 
-        // Real auth success path: trigger warp flourish before transition
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("trace-warp"));
-        }
-        setTimeout(() => {
+        if (authData.session) {
           navigate({ to: "/dashboard" });
-        }, 300);
+        }
       }
     } catch (err) {
       setLoading(false);
@@ -115,6 +131,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
   async function handleGoogle() {
     setError(null);
     setSuccessMsg(null);
+    setOauthFallbackProvider(null);
     setLoading(true);
 
     try {
@@ -127,20 +144,37 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
 
       if (oauthError) {
         setLoading(false);
-        if (
-          oauthError.message.toLowerCase().includes("missing oauth secret") ||
-          oauthError.message.toLowerCase().includes("unsupported provider")
-        ) {
-          setError(
-            "Google sign-in is not yet configured in this Supabase project (missing OAuth client ID/secret in Supabase Dashboard). Please use Email & Password or Demo Mode.",
-          );
-        } else {
-          setError(oauthError.message);
-        }
+        setError(
+          "Google sign-in is not yet configured in this Supabase project (missing OAuth client ID/secret in Supabase Dashboard).",
+        );
+        setOauthFallbackProvider("google");
         return;
       }
 
       if (data?.url) {
+        // Pre-flight check: verify if the OAuth provider is enabled before browser leaves page
+        try {
+          const check = await fetch(data.url, { method: "GET" });
+          if (!check.ok) {
+            const errData = await check.json().catch(() => ({}));
+            const msg = (errData.msg || errData.message || "").toLowerCase();
+            if (
+              msg.includes("missing oauth secret") ||
+              msg.includes("unsupported provider") ||
+              msg.includes("not enabled")
+            ) {
+              setLoading(false);
+              setError(
+                "Google OAuth is not enabled in this Supabase project (missing Client ID/Secret in Supabase Dashboard).",
+              );
+              setOauthFallbackProvider("google");
+              return;
+            }
+          }
+        } catch {
+          // If browser policy prevents reading preflight response, proceed with standard navigation
+        }
+
         window.location.href = data.url;
       } else {
         setLoading(false);
@@ -148,12 +182,14 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
     } catch (err) {
       setLoading(false);
       setError(err instanceof Error ? err.message : "Failed to initiate Google sign-in.");
+      setOauthFallbackProvider("google");
     }
   }
 
   async function handleGithub() {
     setError(null);
     setSuccessMsg(null);
+    setOauthFallbackProvider(null);
     setLoading(true);
 
     try {
@@ -166,20 +202,37 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
 
       if (oauthError) {
         setLoading(false);
-        if (
-          oauthError.message.toLowerCase().includes("missing oauth secret") ||
-          oauthError.message.toLowerCase().includes("unsupported provider")
-        ) {
-          setError(
-            "GitHub sign-in is not yet configured in this Supabase project (missing OAuth client ID/secret in Supabase Dashboard). Please use Email & Password or Demo Mode.",
-          );
-        } else {
-          setError(oauthError.message);
-        }
+        setError(
+          "GitHub sign-in is not yet configured in this Supabase project (missing OAuth client ID/secret in Supabase Dashboard).",
+        );
+        setOauthFallbackProvider("github");
         return;
       }
 
       if (data?.url) {
+        // Pre-flight check: verify if the OAuth provider is enabled before browser leaves page
+        try {
+          const check = await fetch(data.url, { method: "GET" });
+          if (!check.ok) {
+            const errData = await check.json().catch(() => ({}));
+            const msg = (errData.msg || errData.message || "").toLowerCase();
+            if (
+              msg.includes("missing oauth secret") ||
+              msg.includes("unsupported provider") ||
+              msg.includes("not enabled")
+            ) {
+              setLoading(false);
+              setError(
+                "GitHub OAuth is not enabled in this Supabase project (missing Client ID/Secret in Supabase Dashboard).",
+              );
+              setOauthFallbackProvider("github");
+              return;
+            }
+          }
+        } catch {
+          // If browser policy prevents reading preflight response, proceed with standard navigation
+        }
+
         window.location.href = data.url;
       } else {
         setLoading(false);
@@ -187,6 +240,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
     } catch (err) {
       setLoading(false);
       setError(err instanceof Error ? err.message : "Failed to initiate GitHub sign-in.");
+      setOauthFallbackProvider("github");
     }
   }
 
@@ -197,7 +251,18 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
     }
     setTimeout(() => {
       navigate({ to: "/dashboard" });
-    }, 300);
+    }, 200);
+  }
+
+  function handleDemoOAuthLogin(provider: "google" | "github") {
+    localStorage.setItem("trace_guest_session", "true");
+    localStorage.setItem("trace_demo_provider", provider);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("trace-warp"));
+    }
+    setTimeout(() => {
+      navigate({ to: "/dashboard" });
+    }, 200);
   }
 
   return (
@@ -275,6 +340,16 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
                 <span>Authentication Notice</span>
               </div>
               <div>{error}</div>
+              {oauthFallbackProvider && (
+                <button
+                  type="button"
+                  onClick={() => handleDemoOAuthLogin(oauthFallbackProvider)}
+                  className={styles.oauthFallbackBtn}
+                >
+                  <Sparkles style={{ width: 14, height: 14 }} />
+                  Continue as {oauthFallbackProvider === "google" ? "Google" : "GitHub"} Demo Analyst →
+                </button>
+              )}
             </div>
           )}
 

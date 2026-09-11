@@ -344,3 +344,27 @@
   border: 1px solid rgba(255, 92, 122, 0.3);
   color: var(--red);
 }
+
+.oauthFallbackBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(47, 227, 163, 0.12);
+  border: 1px solid rgba(47, 227, 163, 0.4);
+  border-radius: 6px;
+  padding: 9px 12px;
+  color: #2fe3a3;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.15s ease;
+}
+
+.oauthFallbackBtn:hover {
+  background: rgba(47, 227, 163, 0.22);
+  border-color: #2fe3a3;
+  transform: translateY(-1px);
+}
