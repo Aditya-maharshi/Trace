@@ -252,7 +252,11 @@
     position:absolute; inset:0; z-index:1; pointer-events:none;
     background: radial-gradient(ellipse 85% 80% at 50% 48%, rgba(6,6,10,0) 0%, rgba(6,6,10,0.55) 82%, rgba(6,6,10,0.92) 100%);
   }
-  .hero-content{ position:relative; z-index:2; max-width: 600px; padding: 0 32px; margin-left: max(6vw, 32px); margin-top: 110px; pointer-events: none; }
+  .hero-content{
+    position:relative; z-index:2; max-width: 620px; padding: 0 32px;
+    margin-left: max(6vw, 32px); margin-top: 40px; margin-bottom: 40px;
+    pointer-events: none;
+  }
   .hero-content > *{ pointer-events: auto; }
   .eyebrow-tag{
     display:inline-flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:12.5px;
@@ -263,8 +267,9 @@
   @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.25;} }
   .hero h1{ font-size: clamp(38px, 5.2vw, 58px); line-height:1.06; letter-spacing:-0.02em; font-weight:600; margin:0 0 22px; }
   .hero p{ font-size:18px; line-height:1.6; color: var(--text-dim); max-width:470px; margin:0 0 36px; }
-  .hero-actions{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  .hero-actions{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-bottom: 12px; }
   .btn-primary{
+    position: relative; z-index: 10;
     background: var(--text); color:#06060a; font-weight:600; font-size:15px; padding:13px 24px; border-radius:6px;
     display:inline-block; transition: transform .15s ease, box-shadow .15s ease;
   }
@@ -282,7 +287,7 @@
 
   /* ---------- hero ticker ---------- */
   .hero-ticker{
-    position: absolute; bottom: 32px; left: max(6vw, 32px); z-index: 2;
+    position: absolute; bottom: 32px; right: max(4vw, 32px); left: auto; z-index: 2;
     display: inline-flex; align-items: center; gap: 14px;
     background: rgba(13, 13, 21, 0.85);
     backdrop-filter: blur(16px);
@@ -341,9 +346,11 @@
     width: 1px; height: 14px; background: rgba(255, 255, 255, 0.08);
   }
   @media (max-width: 760px){
+    .hero-content{ margin-top: 80px; margin-bottom: 80px; margin-left: 0; padding: 0 20px; }
     .hero-ticker{
       bottom: 16px; left: 16px; right: 16px;
       overflow-x: auto; border-radius: 12px;
+      justify-content: center;
       max-width: calc(100vw - 32px);
     }
   }

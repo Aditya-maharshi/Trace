@@ -40,7 +40,8 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute =
     pathname === "/api/prices" ||
     pathname === "/api/health" ||
-    pathname === "/api/docs";
+    pathname === "/api/docs" ||
+    pathname === "/api/methodology";
 
   const apiKeysEnv = process.env.API_KEYS ?? "";
   const validKeys = apiKeysEnv
