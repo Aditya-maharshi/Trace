@@ -38,7 +38,20 @@ export class ApiError extends Error {
   }
 }
 
-export const API_BASE = import.meta.env["VITE_API_URL"] || "http://localhost:3000";
+export function getApiBase(): string {
+  if (import.meta.env["VITE_API_URL"]) {
+    return import.meta.env["VITE_API_URL"];
+  }
+  if (typeof window !== "undefined") {
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    // If accessed over LAN (e.g. 192.168.1.x), connect to port 3000 on that same host
+    return `${protocol}//${hostname}:3000`;
+  }
+  return "http://localhost:3000";
+}
+
+export const API_BASE = getApiBase();
 const API_KEY = import.meta.env["VITE_API_KEY"] || "changeme-key-1";
 
 function validateAddress(address: string) {

@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback } from "react";
-import type { AttributionResponse } from "@/lib/api";
+import { type AttributionResponse, API_BASE } from "@/lib/api";
 
-const API_BASE = import.meta.env["VITE_API_URL"] || "http://localhost:3000";
 const API_KEY = import.meta.env["VITE_API_KEY"] || "changeme-key-1";
 
 export interface BfsProgressMessage {
