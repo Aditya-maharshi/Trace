@@ -270,12 +270,45 @@
   .hero-actions{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-bottom: 12px; }
   .btn-primary{
     position: relative; z-index: 10;
-    background: var(--text); color:#06060a; font-weight:600; font-size:15px; padding:13px 24px; border-radius:6px;
-    display:inline-block; transition: transform .15s ease, box-shadow .15s ease;
+    background: linear-gradient(135deg, #f7931a 0%, #e07a05 100%);
+    color: #06060a;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    padding: 13px 26px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px -2px rgba(247, 147, 26, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
   }
-  .btn-primary:hover{ transform: translateY(-1px); box-shadow: 0 8px 24px -8px rgba(247,147,26,0.5); }
-  .btn-ghost{ font-size:14.5px; color: var(--text-dim); padding:13px 6px; border-bottom:1px solid transparent; transition: color .15s ease, border-color .15s ease; }
-  .btn-ghost:hover{ color: var(--text); border-color: var(--text-dim); }
+  .btn-primary:hover{
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #ff9f1c 0%, #f7931a 100%);
+    box-shadow: 0 8px 30px rgba(247, 147, 26, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+  .btn-ghost{
+    font-size: 14.5px;
+    font-weight: 500;
+    color: var(--text-dim);
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(10px);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color .15s ease, border-color .15s ease, background .15s ease, transform .15s ease;
+  }
+  .btn-ghost:hover{
+    color: var(--text);
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.07);
+    transform: translateY(-1px);
+  }
 
   .hero-hint{
     position:absolute; top: 100px; right: 40px; z-index:2;

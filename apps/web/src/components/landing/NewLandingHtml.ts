@@ -29,8 +29,8 @@ export const landingHtml = `
     <h1>Automated Attribution of Unknown Crypto Wallets to Nearest VASPs</h1>
     <p>Trace unhosted wallets through multi-hop on-chain transaction graphs to identify regulated exchanges, cross-chain bridge exits, mixer interactions, and AML structuring signals.</p>
     <div class="hero-actions">
-      <a href="/dashboard" class="btn-primary">Launch Trace Engine</a>
-      <a href="/methodology" class="btn-ghost">View AML Methodology →</a>
+      <a href="/dashboard" class="btn-primary">Launch Trace Engine →</a>
+      <a href="/methodology" class="btn-ghost">View AML Methodology</a>
     </div>
   </div>
   <div class="hero-ticker">
@@ -132,7 +132,7 @@ export const landingHtml = `
         <span class="platform-pill">OFAC Screening</span>
         <span class="platform-pill">AI Narration</span>
       </div>
-      <div><a href="/dashboard" class="btn-primary">Launch Trace Engine</a></div>
+      <div><a href="/dashboard" class="btn-primary">Launch Trace Engine →</a></div>
     </div>
   </div>
 </section>
