@@ -1,0 +1,8 @@
+{
+  "name": "sih-hackathon-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}

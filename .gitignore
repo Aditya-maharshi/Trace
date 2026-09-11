@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+.next/
+dist/
+dist-ssr/
+.output/
+.tanstack/
+.wrangler/
+.vercel/
+.nitro/
+.vinxi/
+build/
+
+# Environment files and secrets
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+*.local
+.dev.vars
+
+# Temporary & debug files
+*.log
+*.tsbuildinfo
+.DS_Store
+temp_*.txt
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Cache and local data
+data/cache/
+coverage/
+
+# Editor / IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json

@@ -1,0 +1,346 @@
+/* src/components/auth/auth.module.css */
+/* Scoped styles extracted from login (3).html and signup (4).html */
+
+.authRoot {
+  --bg: #06060a;
+  --bg-raised: #0d0d15;
+  --bg-card: #101019;
+  --line: rgba(255, 255, 255, 0.09);
+  --btc: #f7931a;
+  --eth: #8c9dfc;
+  --sol: #14f1c6;
+  --green: #2fe3a3;
+  --red: #ff5c7a;
+  --text: #f2f2f7;
+  --text-dim: #9a9aab;
+  --text-faint: #5c5c6c;
+
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.bgCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  touch-action: pan-y;
+}
+
+@media (max-width: 768px) {
+  .bgCanvas {
+    pointer-events: none;
+  }
+}
+
+.bgVignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 80% 70% at 50% 40%, rgba(6, 6, 10, 0.1) 0%, rgba(6, 6, 10, 0.82) 75%, rgba(6, 6, 10, 1) 100%);
+}
+
+.header {
+  position: relative;
+  z-index: 5;
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 19px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.logoDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--btc);
+  box-shadow: 0 0 12px 2px var(--btc);
+}
+
+.backLink {
+  font-size: 13.5px;
+  color: var(--text-dim);
+  transition: color 0.15s ease;
+}
+
+.backLink:hover {
+  color: var(--text);
+}
+
+.liveTicker {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-faint);
+  padding: 0 20px 6px;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .liveTicker {
+    display: none;
+  }
+}
+
+.tItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sym {
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.up {
+  color: var(--green);
+}
+
+.down {
+  color: var(--red);
+}
+
+.mainContainer {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 24px 20px 48px;
+}
+
+.authCard {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(13, 13, 21, 0.84);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 38px 34px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+}
+
+.authCard h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  letter-spacing: -0.015em;
+}
+
+.sub {
+  font-size: 14.5px;
+  color: var(--text-dim);
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.fieldRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 7px;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.field input {
+  width: 100%;
+  background: #08080e;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 11px 13px;
+  color: var(--text);
+  font-size: 14.5px;
+  font-family: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  box-sizing: border-box;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--btc);
+  background: #0a0a12;
+}
+
+.field input::placeholder {
+  color: var(--text-faint);
+}
+
+.strengthRow {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.strengthRow .seg {
+  height: 3px;
+  flex: 1;
+  background: var(--line);
+  border-radius: 2px;
+  transition: background 0.2s ease;
+}
+
+.submitBtn {
+  width: 100%;
+  background: var(--text);
+  color: #06060a;
+  font-weight: 600;
+  font-size: 14.5px;
+  font-family: inherit;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  margin-top: 8px;
+}
+
+.submitBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px -8px rgba(247, 147, 26, 0.5);
+}
+
+.submitBtn:active {
+  transform: translateY(0);
+}
+
+.submitBtn.loading,
+.submitBtn:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 16px;
+  color: var(--text-faint);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.oauthBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #08080e;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 11px;
+  color: var(--text-dim);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.oauthBtn:hover {
+  border-color: var(--text-dim);
+  color: var(--text);
+}
+
+.demoBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(247, 147, 26, 0.06);
+  border: 1px dashed rgba(247, 147, 26, 0.35);
+  border-radius: 8px;
+  padding: 10px;
+  color: var(--btc);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.demoBtn:hover {
+  background: rgba(247, 147, 26, 0.12);
+  border-color: var(--btc);
+}
+
+.switchLine {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+
+.switchLine a {
+  color: var(--btc);
+  text-decoration: none;
+}
+
+.switchLine a:hover {
+  text-decoration: underline;
+}
+
+.alertBox {
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.alertSuccess {
+  background: rgba(46, 227, 163, 0.08);
+  border: 1px solid rgba(46, 227, 163, 0.3);
+  color: var(--green);
+}
+
+.alertError {
+  background: rgba(255, 92, 122, 0.08);
+  border: 1px solid rgba(255, 92, 122, 0.3);
+  color: var(--red);
+}

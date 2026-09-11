@@ -1,0 +1,202 @@
+[
+  {
+    "address": "0x233efbdc7b9c1cd0447807425e1cc9a74561452c",
+    "label": "Binance Depositor Wallet"
+  },
+  {
+    "address": "0x5e1f4e09c48f7fc907a788ea4b0f8833b126e834",
+    "label": "Binance Depositor Wallet"
+  },
+  {
+    "address": "0x6ced77ef25028ed9325215f7165901ed0fc2fb05",
+    "label": "Binance Depositor Wallet"
+  },
+  {
+    "address": "0xfb7646384719bc174b303d6538e1d91c29325375",
+    "label": "Binance Depositor Wallet"
+  },
+  {
+    "address": "0xede35ba8c9f35d0ae63bdb86df824a36ded82a06",
+    "label": "Binance Depositor Wallet"
+  },
+  {
+    "address": "0xd5f5475502120ad0e3dbaa25ecedffd19d6569fa",
+    "label": "Binance Depositor Wallet"
+  },
+  {
+    "address": "0xe91b373212f8ae32925cbcf39ab3a7b0763c27c9",
+    "label": "Binance Depositor Wallet"
+  },
+  {
+    "address": "0x41ea16543ee00efa99f70b126ede1718f93fb227",
+    "label": "Binance Depositor Wallet"
+  },
+  {
+    "address": "0x82c705d7b532316e5b767df60d3be151b670aa1a",
+    "label": "Coinbase Depositor Wallet"
+  },
+  {
+    "address": "0x0cb1f2c49d38d69df77e85c68e0a302f0e7e160c",
+    "label": "Coinbase Depositor Wallet"
+  },
+  {
+    "address": "0x1210768ac1278049e2f1875e994a443f492aca77",
+    "label": "Coinbase Depositor Wallet"
+  },
+  {
+    "address": "0x4f10c3a33c9cc4ee2172e4355f6320fcb65f496c",
+    "label": "Coinbase Depositor Wallet"
+  },
+  {
+    "address": "0x83ac560aaf0e956e8199413da0107b109b9d6c8e",
+    "label": "Coinbase Depositor Wallet"
+  },
+  {
+    "address": "0xcd8d053054d2fa051c3605588a01d7965c88fce0",
+    "label": "Coinbase Depositor Wallet"
+  },
+  {
+    "address": "0xb046c7f8bf931f1047f39b2651741644fc7a3bbd",
+    "label": "Coinbase Depositor Wallet"
+  },
+  {
+    "address": "0xc623fee70538ff70177426de3765ce9fe5b9f3d6",
+    "label": "Coinbase Depositor Wallet"
+  },
+  {
+    "address": "0xa03400e098f4421b34a3a44a1b4e571419517687",
+    "label": "Kraken Depositor Wallet"
+  },
+  {
+    "address": "0x6d6e37b9b3320c2b7e5b2186c8105683e5ef4e21",
+    "label": "Kraken Depositor Wallet"
+  },
+  {
+    "address": "0x05ffd14ef5850fc7c4f3fc7d36c7b1d3c450f381",
+    "label": "Kraken Depositor Wallet"
+  },
+  {
+    "address": "0xa6dc688e849348fa3bea0a7a6a1addcebd7aed1a",
+    "label": "Kraken Depositor Wallet"
+  },
+  {
+    "address": "0x95a05b9ba0d6643911c53d5fe4734bb449fc6bd8",
+    "label": "Kraken Depositor Wallet"
+  },
+  {
+    "address": "0xa271266ea7cf6863e518edc7bb2607349cde2cf1",
+    "label": "Kraken Depositor Wallet"
+  },
+  {
+    "address": "0xae07f9577295072e047627562e293eb44c0166d1",
+    "label": "Kraken Depositor Wallet"
+  },
+  {
+    "address": "0x60d448c08ca227acdcc2e2f44471b4d6c8e3e429",
+    "label": "Kraken Depositor Wallet"
+  },
+  {
+    "address": "0x216b75231dfec0a4716b602ab00669fa568ad09b",
+    "label": "Kraken Depositor Wallet"
+  },
+  {
+    "address": "0xd4d80fecff6d2b8d7fedd773a97e504d23cce3c2",
+    "label": "Kraken Depositor Wallet"
+  },
+  {
+    "address": "0x91bc5b4e92c68b9f391c54b889af915770dcd598",
+    "label": "Kraken Depositor Wallet"
+  },
+  {
+    "address": "0x8c8e631502c2314ea34541ca0b6e06c692a76c73",
+    "label": "Kraken Depositor Wallet"
+  },
+  {
+    "address": "0x80ac9f7a292e8d6e3c805ddf5fa5d535d0f4617b",
+    "label": "Kraken Depositor Wallet"
+  },
+  {
+    "address": "0xe72318f8c6f237fc936510f1aa6d9cb7573b50f2",
+    "label": "KuCoin Depositor Wallet"
+  },
+  {
+    "address": "0x3444c774152d2c9975893f029aa55ef7af10ea46",
+    "label": "KuCoin Depositor Wallet"
+  },
+  {
+    "address": "0xe035d9206fe6db08eedbe280f1b608b246dc865e",
+    "label": "KuCoin Depositor Wallet"
+  },
+  {
+    "address": "0x94a15e7d6f506098886f5793a3ff07c133036b87",
+    "label": "KuCoin Depositor Wallet"
+  },
+  {
+    "address": "0xc3459bb4994a663ca03d0dd4f09df3aa99a22c02",
+    "label": "KuCoin Depositor Wallet"
+  },
+  {
+    "address": "0x4373536b06af1bd68673f345decc15ff2b22c6bc",
+    "label": "KuCoin Depositor Wallet"
+  },
+  {
+    "address": "0x87c50481183c953b9271dc48576699cdd07af8a0",
+    "label": "KuCoin Depositor Wallet"
+  },
+  {
+    "address": "0xceb23ef2e01b7656afdd8db5a989fd4537fcc9ba",
+    "label": "KuCoin Depositor Wallet"
+  },
+  {
+    "address": "0x77300c71071eca35cb673a0b7571b2907deb77c7",
+    "label": "Bitfinex Depositor Wallet"
+  },
+  {
+    "address": "0x69a99a37b97fb8d7ed3b61541d1fd56a2542949c",
+    "label": "Bitfinex Depositor Wallet"
+  },
+  {
+    "address": "0x14c0f3ef5ed52f9197943f0059eae44c41f9b90d",
+    "label": "Bitfinex Depositor Wallet"
+  },
+  {
+    "address": "0x2759bc7b8f9f2b47eeeffb2f5751e0cff3ff1ad8",
+    "label": "Bitfinex Depositor Wallet"
+  },
+  {
+    "address": "0xcb806da74814d16d6e86efec553e0c541cf83f45",
+    "label": "Bitfinex Depositor Wallet"
+  },
+  {
+    "address": "0x007b5e6f286be6abbb1154fbb31fc74f497e69b8",
+    "label": "Bitfinex Depositor Wallet"
+  },
+  {
+    "address": "0x7757e95345494f4e719b12dad0973cbf06189e6a",
+    "label": "OKX Depositor Wallet"
+  },
+  {
+    "address": "0xe6205abb0c34a02325ec88d68edd7e4dc6342204",
+    "label": "OKX Depositor Wallet"
+  },
+  {
+    "address": "0x743354e935a926622df33b98677b352f5986f918",
+    "label": "Huobi Depositor Wallet"
+  },
+  {
+    "address": "0x7561e4e74f1a0a7fd32318d951077b68dffeecaa",
+    "label": "Huobi Depositor Wallet"
+  },
+  {
+    "address": "0x598273ea2cabd9f798564877851788c5e0d5b7b9",
+    "label": "Huobi Depositor Wallet"
+  },
+  {
+    "address": "0x97bc9ee884bf4842580ad4313f47c43401d5dbdc",
+    "label": "Poloniex Depositor Wallet"
+  },
+  {
+    "address": "0xeee9683715ce28dff7ecd78c3178a518a6cdc66b",
+    "label": "Poloniex Depositor Wallet"
+  }
+]
