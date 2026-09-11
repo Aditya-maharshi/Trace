@@ -450,39 +450,48 @@ let livePrices: any = null;
 function updateUIWithPrices() {
   if (!livePrices) return;
 
-  // Update coinDefs
-  coinDefs[0].price = '$' + livePrices.bitcoin.usd.toLocaleString();
-  coinDefs[0].change = (livePrices.bitcoin.usd_24h_change >= 0 ? '+' : '') + livePrices.bitcoin.usd_24h_change.toFixed(2) + '%';
-  coinDefs[0].up = livePrices.bitcoin.usd_24h_change >= 0;
+  const btcDef = coinDefs[0];
+  const ethDef = coinDefs[1];
+  const solDef = coinDefs[2];
 
-  coinDefs[1].price = '$' + livePrices.ethereum.usd.toLocaleString();
-  coinDefs[1].change = (livePrices.ethereum.usd_24h_change >= 0 ? '+' : '') + livePrices.ethereum.usd_24h_change.toFixed(2) + '%';
-  coinDefs[1].up = livePrices.ethereum.usd_24h_change >= 0;
+  // Update coinDefs safely
+  if (btcDef && livePrices.bitcoin) {
+    btcDef.price = '$' + livePrices.bitcoin.usd.toLocaleString();
+    btcDef.change = (livePrices.bitcoin.usd_24h_change >= 0 ? '+' : '') + livePrices.bitcoin.usd_24h_change.toFixed(2) + '%';
+    btcDef.up = livePrices.bitcoin.usd_24h_change >= 0;
+  }
 
-  coinDefs[2].price = '$' + livePrices.solana.usd.toLocaleString();
-  coinDefs[2].change = (livePrices.solana.usd_24h_change >= 0 ? '+' : '') + livePrices.solana.usd_24h_change.toFixed(2) + '%';
-  coinDefs[2].up = livePrices.solana.usd_24h_change >= 0;
+  if (ethDef && livePrices.ethereum) {
+    ethDef.price = '$' + livePrices.ethereum.usd.toLocaleString();
+    ethDef.change = (livePrices.ethereum.usd_24h_change >= 0 ? '+' : '') + livePrices.ethereum.usd_24h_change.toFixed(2) + '%';
+    ethDef.up = livePrices.ethereum.usd_24h_change >= 0;
+  }
+
+  if (solDef && livePrices.solana) {
+    solDef.price = '$' + livePrices.solana.usd.toLocaleString();
+    solDef.change = (livePrices.solana.usd_24h_change >= 0 ? '+' : '') + livePrices.solana.usd_24h_change.toFixed(2) + '%';
+    solDef.up = livePrices.solana.usd_24h_change >= 0;
+  }
 
   // Update Ticker
   const updateTick = (id: string, def: any, val: number, chg: number) => {
     const el = root.querySelector('#tick-' + id);
     if (el) {
-      el.textContent = '$' + val.toLocaleString() + ' ' + (def.up ? '\u25B2' : '\u25BC') + Math.abs(chg).toFixed(2) + '%';
-      el.className = def.up ? 'up' : 'down';
+      el.textContent = '$' + val.toLocaleString() + ' ' + (def?.up ? '\u25B2' : '\u25BC') + Math.abs(chg).toFixed(2) + '%';
+      el.className = def?.up ? 'up' : 'down';
     }
   };
-  updateTick('btc', coinDefs[0], livePrices.bitcoin.usd, livePrices.bitcoin.usd_24h_change);
-  updateTick('eth', coinDefs[1], livePrices.ethereum.usd, livePrices.ethereum.usd_24h_change);
-  updateTick('sol', coinDefs[2], livePrices.solana.usd, livePrices.solana.usd_24h_change);
-
-
+  if (btcDef && livePrices.bitcoin) updateTick('btc', btcDef, livePrices.bitcoin.usd, livePrices.bitcoin.usd_24h_change);
+  if (ethDef && livePrices.ethereum) updateTick('eth', ethDef, livePrices.ethereum.usd, livePrices.ethereum.usd_24h_change);
+  if (solDef && livePrices.solana) updateTick('sol', solDef, livePrices.solana.usd, livePrices.solana.usd_24h_change);
 }
 
 async function fetchPrices() {
   try {
     // We get the VITE_ variables if they exist in window, otherwise fallback
-    const API_BASE = (import.meta.env && import.meta.env.VITE_API_URL) || "http://localhost:3000";
-    const API_KEY = (import.meta.env && import.meta.env.VITE_API_KEY) || "changeme-key-1";
+    const env = (import.meta.env || {}) as Record<string, string | undefined>;
+    const API_BASE = env['VITE_API_URL'] || "http://localhost:3000";
+    const API_KEY = env['VITE_API_KEY'] || "changeme-key-1";
 
     const res = await fetch(API_BASE + '/api/prices', {
       headers: { "x-api-key": API_KEY }
