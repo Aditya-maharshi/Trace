@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ShieldCheck, Database, GitFork, AlertTriangle, Layers, Scale, ExternalLink } from "lucide-react";
+import { ArrowLeft, ArrowRight, ShieldCheck, Database, GitFork, AlertTriangle, Layers, Scale, ExternalLink, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/methodology")({
   head: () => ({
@@ -75,9 +75,10 @@ function MethodologyPage() {
             </span>
             <Link
               to="/dashboard"
-              className="bg-white text-[#06060a] text-xs font-semibold px-4 py-2 rounded-md hover:bg-white/90 transition-all"
+              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#f7931a] to-[#ffaa40] text-[#08080c] text-xs font-bold px-4 py-2 rounded-lg shadow-[0_0_15px_rgba(247,147,26,0.35)] hover:shadow-[0_0_22px_rgba(247,147,26,0.6)] hover:from-[#ffaa40] hover:to-[#f7931a] transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              Launch Engine
+              <span>Launch Engine</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
@@ -198,6 +199,26 @@ function MethodologyPage() {
               </div>
             </div>
           </section>
+        </div>
+
+        {/* Bottom CTA Section */}
+        <div className="bg-gradient-to-b from-white/[0.04] to-transparent border border-white/10 rounded-xl p-8 text-center space-y-4 relative overflow-hidden">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#f7931a]/10 border border-[#f7931a]/30 text-[#f7931a]">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <h3 className="text-xl font-bold text-white font-serif">Run Live Wallet Attribution</h3>
+          <p className="text-sm text-white/60 max-w-md mx-auto">
+            Experience our multi-hop graph engine resolving unhosted addresses to nearest exchange endpoints in real-time.
+          </p>
+          <div className="pt-2">
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#f7931a] to-[#ffaa40] text-[#08080c] text-sm font-bold px-6 py-2.5 rounded-lg shadow-[0_0_20px_rgba(247,147,26,0.4)] hover:shadow-[0_0_28px_rgba(247,147,26,0.65)] hover:from-[#ffaa40] hover:to-[#f7931a] transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span>Launch Forensic Engine</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
 
         {/* Footer info */}
