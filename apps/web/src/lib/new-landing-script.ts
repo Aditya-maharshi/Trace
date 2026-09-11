@@ -475,37 +475,7 @@ function updateUIWithPrices() {
   updateTick('eth', coinDefs[1], livePrices.ethereum.usd, livePrices.ethereum.usd_24h_change);
   updateTick('sol', coinDefs[2], livePrices.solana.usd, livePrices.solana.usd_24h_change);
 
-  // Update Portfolio Inspector
-  const btcAmt = 0.1424, ethAmt = 2.32, solAmt = 20.4, usdcAmt = 1100;
-  const btcVal = btcAmt * livePrices.bitcoin.usd;
-  const ethVal = ethAmt * livePrices.ethereum.usd;
-  const solVal = solAmt * livePrices.solana.usd;
-  
-  const total = btcVal + ethVal + solVal + usdcAmt;
-  
-  const setWf = (id: string, val: number) => {
-    const pct = (val / total) * 100;
-    const textEl = root.querySelector('#wf-' + id + '-text');
-    if (textEl) textEl.textContent = '$' + Math.round(val).toLocaleString() + ' · ' + Math.round(pct) + '%';
-    const barEl = root.querySelector('#wf-' + id + '-bar') as HTMLElement;
-    if (barEl) barEl.style.width = pct + '%';
-  };
 
-  setWf('btc', btcVal); setWf('eth', ethVal); setWf('sol', solVal); setWf('usdc', usdcAmt);
-
-  const setTreeChg = (id: string, up: boolean, chg: number) => {
-    const el = root.querySelector('#tree-' + id + '-change');
-    if (el) {
-      el.textContent = (up ? '\u25B2' : '\u25BC') + Math.abs(chg).toFixed(2) + '%';
-      el.className = 'chg ' + (up ? 'up' : 'down');
-    }
-  };
-  setTreeChg('btc', coinDefs[0].up, livePrices.bitcoin.usd_24h_change);
-  setTreeChg('eth', coinDefs[1].up, livePrices.ethereum.usd_24h_change);
-  setTreeChg('sol', coinDefs[2].up, livePrices.solana.usd_24h_change);
-
-  const totalEl = root.querySelector('#total-value');
-  if (totalEl) totalEl.setAttribute('data-target', Math.round(total).toString());
 }
 
 async function fetchPrices() {

@@ -7,11 +7,11 @@ import { useRouter } from "@tanstack/react-router";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Trace — Track every move the market makes" },
+      { title: "Trace — Automated Attribution of Unknown Crypto Wallets to Nearest VASPs" },
       {
         name: "description",
         content:
-          "See your Bitcoin, Ethereum and altcoin holdings in one live view — real-time prices, portfolio value, and alerts the moment something moves.",
+          "Automated attribution of unknown cryptocurrency wallets to nearest Virtual Asset Service Providers (VASPs) through recursive BFS graph traversal and blockchain intelligence APIs.",
       },
     ],
   }),
