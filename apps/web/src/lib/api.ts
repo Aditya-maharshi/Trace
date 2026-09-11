@@ -40,13 +40,25 @@ export class ApiError extends Error {
 
 export function getApiBase(): string {
   if (import.meta.env["VITE_API_URL"]) {
-    return import.meta.env["VITE_API_URL"];
+    return import.meta.env["VITE_API_URL"].replace(/\/+$/, "");
   }
   if (typeof window !== "undefined") {
     const protocol = window.location.protocol;
     const hostname = window.location.hostname;
-    // If accessed over LAN (e.g. 192.168.1.x), connect to port 3000 on that same host
-    return `${protocol}//${hostname}:3000`;
+
+    // Localhost dev
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return "http://localhost:3000";
+    }
+
+    // LAN testing (e.g. 192.168.x.x)
+    if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname)) {
+      return `${protocol}//${hostname}:3000`;
+    }
+
+    // Cloud deployments (e.g. *.vercel.app) without VITE_API_URL:
+    // Call relative paths directly (/api/...) instead of appending an invalid :3000 port
+    return "";
   }
   return "http://localhost:3000";
 }
