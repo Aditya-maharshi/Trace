@@ -34,8 +34,14 @@ export async function middleware(request: NextRequest) {
   }
 
   // -----------------------------------------------------------------------
-  // 2. API-key authentication
+  // 2. API-key authentication (public endpoints exempt)
   // -----------------------------------------------------------------------
+  const pathname = request.nextUrl.pathname;
+  const isPublicRoute =
+    pathname === "/api/prices" ||
+    pathname === "/api/health" ||
+    pathname === "/api/docs";
+
   const apiKeysEnv = process.env.API_KEYS ?? "";
   const validKeys = apiKeysEnv
     .split(",")
@@ -47,8 +53,8 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.searchParams.get("apiKey") ?? 
     "";
 
-  if (validKeys.length > 0) {
-    // Keys are configured – enforce them.
+  if (!isPublicRoute && validKeys.length > 0) {
+    // Keys are configured – enforce them for private endpoints.
     if (!presentedKey || !validKeys.includes(presentedKey)) {
       return NextResponse.json(
         { error: "Unauthorized. A valid x-api-key header or apiKey query parameter is required." },

@@ -17,9 +17,12 @@ export const landingHtml = `
   <div class="hero-vignette"></div>
   <div class="hero-hint"><span class="ring"></span>drag to orbit · click node</div>
   <div id="coin-info">
-    <div class="ci-name mono" id="ci-name">Bitcoin</div>
-    <div class="ci-price" id="ci-price">$---</div>
-    <div class="ci-change up" id="ci-change">---</div>
+    <div class="ci-header">
+      <span class="ci-name" id="ci-name">Bitcoin</span>
+      <span class="ci-sym" id="ci-sym">BTC</span>
+    </div>
+    <div class="ci-price" id="ci-price">$77,144.60</div>
+    <div class="ci-change down" id="ci-change">▼ 1.27%</div>
   </div>
   <div class="hero-content">
     <span class="eyebrow-tag"><span class="dot"></span>Blockchain Intelligence Engine</span>
@@ -31,9 +34,27 @@ export const landingHtml = `
     </div>
   </div>
   <div class="hero-ticker">
-    <span class="t-item"><span class="sym">BTC</span> <span class="up" id="tick-btc">$---</span></span>
-    <span class="t-item"><span class="sym">ETH</span> <span class="up" id="tick-eth">$---</span></span>
-    <span class="t-item"><span class="sym">SOL</span> <span class="down" id="tick-sol">$---</span></span>
+    <div class="ticker-pill">
+      <span class="pulse-dot"></span>
+      <span class="ticker-label">LIVE MARKETS</span>
+    </div>
+    <div class="t-item">
+      <span class="sym">BTC</span>
+      <span class="val" id="tick-btc-val">$77,144.60</span>
+      <span class="chg down" id="tick-btc-chg">▼ 1.27%</span>
+    </div>
+    <div class="t-divider"></div>
+    <div class="t-item">
+      <span class="sym">ETH</span>
+      <span class="val" id="tick-eth-val">$2,463.58</span>
+      <span class="chg down" id="tick-eth-chg">▼ 0.37%</span>
+    </div>
+    <div class="t-divider"></div>
+    <div class="t-item">
+      <span class="sym">SOL</span>
+      <span class="val" id="tick-sol-val">$99.50</span>
+      <span class="chg down" id="tick-sol-chg">▼ 1.66%</span>
+    </div>
   </div>
 </section>
 

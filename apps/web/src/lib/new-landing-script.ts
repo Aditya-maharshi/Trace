@@ -131,9 +131,9 @@ scene.add(coreLight);
 
 // ---- coins ----
 const coinDefs = [
-  { name:'Bitcoin', symbol:'BTC', glyph:'\u20BF', price:'$---', change:'---', up:true, color:'#f7931a', dark:'#1a1206', edge:'#c9740f', glow: glowTexOrange, orbitR: 2.7, speed: 0.22, phase: 0, scale: 1.0 },
-  { name:'Ethereum', symbol:'ETH', glyph:'\u039E', price:'$---', change:'---', up:true, color:'#8c9dfc', dark:'#12142b', edge:'#5f6fd6', glow: glowTexBlue, orbitR: 3.9, speed: 0.15, phase: 2.1, scale: 0.8 },
-  { name:'Solana', symbol:'SOL', glyph:'\u25CE', price:'$---', change:'---', up:false, color:'#14f1c6', dark:'#062420', edge:'#0fae90', glow: glowTexTeal, orbitR: 5.0, speed: 0.1, phase: 4.3, scale: 0.62 },
+  { name:'Bitcoin', symbol:'BTC', glyph:'\u20BF', price:'$77,144.60', change:'-1.27%', up:false, color:'#f7931a', dark:'#1a1206', edge:'#c9740f', glow: glowTexOrange, orbitR: 2.7, speed: 0.22, phase: 0, scale: 1.0 },
+  { name:'Ethereum', symbol:'ETH', glyph:'\u039E', price:'$2,463.58', change:'-0.37%', up:false, color:'#8c9dfc', dark:'#12142b', edge:'#5f6fd6', glow: glowTexBlue, orbitR: 3.9, speed: 0.15, phase: 2.1, scale: 0.8 },
+  { name:'Solana', symbol:'SOL', glyph:'\u25CE', price:'$99.50', change:'-1.66%', up:false, color:'#14f1c6', dark:'#062420', edge:'#0fae90', glow: glowTexTeal, orbitR: 5.0, speed: 0.1, phase: 4.3, scale: 0.62 },
 ];
 
 const coinObjects: any[] = [];
@@ -316,11 +316,18 @@ canvas.addEventListener('pointerup', (e: Event) => {
     selected = hits[0]?.object || null;
     if (!selected) return;
     const d = selected.userData;
-    (root.querySelector('#ci-name') as HTMLElement).textContent = d.name;
-    (root.querySelector('#ci-price') as HTMLElement).textContent = d.price;
+    const nameEl = root.querySelector('#ci-name');
+    if (nameEl) nameEl.textContent = d.name;
+    const symEl = root.querySelector('#ci-sym');
+    if (symEl) symEl.textContent = d.symbol;
+    const priceEl = root.querySelector('#ci-price');
+    if (priceEl) priceEl.textContent = d.price;
     const chEl = root.querySelector('#ci-change') as HTMLElement;
-    chEl.textContent = (d.up ? '\u25B2 ' : '\u25BC ') + d.change.replace(/[+-]/, '');
-    chEl.className = 'ci-change ' + (d.up ? 'up' : 'down');
+    if (chEl) {
+      const cleanChg = (d.change || '').replace(/^[+-]/, '');
+      chEl.textContent = (d.up ? '▲ +' : '▼ -') + cleanChg;
+      chEl.className = 'ci-change ' + (d.up ? 'up' : 'down');
+    }
     if (infoCard) infoCard.classList.add('visible');
     const wp = new THREE.Vector3();
     selected.getWorldPosition(wp);
@@ -445,7 +452,28 @@ root.querySelectorAll('.btn-primary, .nav-cta').forEach((el: Element) => {
 });
 
 // ---- live prices fetch & ui update ----
-let livePrices: any = null;
+function formatUsdPrice(val: number): string {
+  if (typeof val !== 'number' || isNaN(val)) return '$0.00';
+  return '$' + val.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function formatPercentChange(val: number): { text: string; isUp: boolean } {
+  const isUp = val >= 0;
+  const abs = Math.abs(val).toFixed(2);
+  return {
+    text: (isUp ? '▲ +' : '▼ -') + abs + '%',
+    isUp,
+  };
+}
+
+let livePrices: any = {
+  bitcoin: { usd: 77144.60, usd_24h_change: -1.27 },
+  ethereum: { usd: 2463.58, usd_24h_change: -0.37 },
+  solana: { usd: 99.50, usd_24h_change: -1.66 },
+};
 
 function updateUIWithPrices() {
   if (!livePrices) return;
@@ -456,54 +484,67 @@ function updateUIWithPrices() {
 
   // Update coinDefs safely
   if (btcDef && livePrices.bitcoin) {
-    btcDef.price = '$' + livePrices.bitcoin.usd.toLocaleString();
-    btcDef.change = (livePrices.bitcoin.usd_24h_change >= 0 ? '+' : '') + livePrices.bitcoin.usd_24h_change.toFixed(2) + '%';
-    btcDef.up = livePrices.bitcoin.usd_24h_change >= 0;
+    const chg = formatPercentChange(livePrices.bitcoin.usd_24h_change);
+    btcDef.price = formatUsdPrice(livePrices.bitcoin.usd);
+    btcDef.change = (chg.isUp ? '+' : '-') + Math.abs(livePrices.bitcoin.usd_24h_change).toFixed(2) + '%';
+    btcDef.up = chg.isUp;
   }
 
   if (ethDef && livePrices.ethereum) {
-    ethDef.price = '$' + livePrices.ethereum.usd.toLocaleString();
-    ethDef.change = (livePrices.ethereum.usd_24h_change >= 0 ? '+' : '') + livePrices.ethereum.usd_24h_change.toFixed(2) + '%';
-    ethDef.up = livePrices.ethereum.usd_24h_change >= 0;
+    const chg = formatPercentChange(livePrices.ethereum.usd_24h_change);
+    ethDef.price = formatUsdPrice(livePrices.ethereum.usd);
+    ethDef.change = (chg.isUp ? '+' : '-') + Math.abs(livePrices.ethereum.usd_24h_change).toFixed(2) + '%';
+    ethDef.up = chg.isUp;
   }
 
   if (solDef && livePrices.solana) {
-    solDef.price = '$' + livePrices.solana.usd.toLocaleString();
-    solDef.change = (livePrices.solana.usd_24h_change >= 0 ? '+' : '') + livePrices.solana.usd_24h_change.toFixed(2) + '%';
-    solDef.up = livePrices.solana.usd_24h_change >= 0;
+    const chg = formatPercentChange(livePrices.solana.usd_24h_change);
+    solDef.price = formatUsdPrice(livePrices.solana.usd);
+    solDef.change = (chg.isUp ? '+' : '-') + Math.abs(livePrices.solana.usd_24h_change).toFixed(2) + '%';
+    solDef.up = chg.isUp;
   }
 
-  // Update Ticker
-  const updateTick = (id: string, def: any, val: number, chg: number) => {
-    const el = root.querySelector('#tick-' + id);
-    if (el) {
-      el.textContent = '$' + val.toLocaleString() + ' ' + (def?.up ? '\u25B2' : '\u25BC') + Math.abs(chg).toFixed(2) + '%';
-      el.className = def?.up ? 'up' : 'down';
+  // Update Ticker with decoupled value and change badge
+  const updateTick = (id: string, val: number, chgVal: number) => {
+    const valEl = root.querySelector('#tick-' + id + '-val');
+    if (valEl) {
+      valEl.textContent = formatUsdPrice(val);
+    }
+    const chgEl = root.querySelector('#tick-' + id + '-chg') as HTMLElement;
+    if (chgEl) {
+      const chg = formatPercentChange(chgVal);
+      chgEl.textContent = chg.text;
+      chgEl.className = 'chg ' + (chg.isUp ? 'up' : 'down');
     }
   };
-  if (btcDef && livePrices.bitcoin) updateTick('btc', btcDef, livePrices.bitcoin.usd, livePrices.bitcoin.usd_24h_change);
-  if (ethDef && livePrices.ethereum) updateTick('eth', ethDef, livePrices.ethereum.usd, livePrices.ethereum.usd_24h_change);
-  if (solDef && livePrices.solana) updateTick('sol', solDef, livePrices.solana.usd, livePrices.solana.usd_24h_change);
+
+  if (livePrices.bitcoin) updateTick('btc', livePrices.bitcoin.usd, livePrices.bitcoin.usd_24h_change);
+  if (livePrices.ethereum) updateTick('eth', livePrices.ethereum.usd, livePrices.ethereum.usd_24h_change);
+  if (livePrices.solana) updateTick('sol', livePrices.solana.usd, livePrices.solana.usd_24h_change);
 }
 
 async function fetchPrices() {
   try {
-    // We get the VITE_ variables if they exist in window, otherwise fallback
     const env = (import.meta.env || {}) as Record<string, string | undefined>;
-    const API_BASE = env['VITE_API_URL'] || "http://localhost:3000";
+    const API_BASE = env['VITE_API_URL'] || (typeof window !== 'undefined' && window.location.port === '8083' ? 'http://localhost:3000' : '');
     const API_KEY = env['VITE_API_KEY'] || "changeme-key-1";
 
-    const res = await fetch(API_BASE + '/api/prices', {
+    const url = (API_BASE ? API_BASE : '') + '/api/prices';
+    const res = await fetch(url, {
       headers: { "x-api-key": API_KEY }
     });
     if (!res.ok) return;
-    livePrices = await res.json();
-    updateUIWithPrices();
+    const data = await res.json();
+    if (data && data.bitcoin && data.ethereum && data.solana) {
+      livePrices = data;
+      updateUIWithPrices();
+    }
   } catch (e) {
-    console.error("Error fetching live prices", e);
+    console.warn("Using baseline prices, live fetch error:", e);
   }
 }
 
+updateUIWithPrices();
 fetchPrices();
 const interval2 = setInterval(fetchPrices, 60000);
 
