@@ -15,8 +15,7 @@ interface Message {
   done?: boolean;         // whether the stream has finished
 }
 
-import { API_BASE } from "@/lib/api";
-const API_KEY = import.meta.env["VITE_API_KEY"] || "changeme-key-1";
+import { apiUrl, API_KEY } from "@/lib/api";
 
 const SUGGESTED_QUESTIONS = [
   "Why is this confidence level assigned?",
@@ -121,7 +120,7 @@ export function FollowUpChat({ data, onCiteClick }: FollowUpChatProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE}/api/chat`, {
+      const response = await fetch(apiUrl("/chat"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { findNearestVASP } from "../lib/graphBuilder";
+import { findNearestVASP } from "../lib/domains/tracing/graphBuilder";
 
-vi.mock("../lib/etherscan", () => {
+vi.mock("../lib/domains/tracing/etherscan", () => {
   return {
     getTransactions: vi.fn(),
     getTokenTransactions: vi.fn(),
   };
 });
 
-import { getTransactions, getTokenTransactions } from "../lib/etherscan";
+import { getTransactions, getTokenTransactions } from "../lib/domains/tracing/etherscan";
 
 // Mock sanctions logic
-vi.mock("../lib/sanctions", () => {
+vi.mock("../lib/domains/compliance/sanctions", () => {
   return {
     checkSanctions: vi.fn(async (addresses: string[]) => {
       // Mock that "0xbadbadbadbadbadbadbadbadbadbadbadbadbadb" is sanctioned

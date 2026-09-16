@@ -64,7 +64,30 @@ export function getApiBase(): string {
 }
 
 export const API_BASE = getApiBase();
-const API_KEY = import.meta.env["VITE_API_KEY"] || "changeme-key-1";
+
+/** Stable versioned API prefix. Unversioned `/api/*` remains an alias on the backend. */
+export const API_VERSION_PREFIX = "/api/v1";
+
+export function apiUrl(path: string): string {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${API_BASE}${API_VERSION_PREFIX}${normalized}`;
+}
+
+function getApiKey(): string {
+  const key = import.meta.env["VITE_API_KEY"] || "";
+  if (!key) {
+    console.warn(
+      "[Trace] VITE_API_KEY is not set. API requests will be sent without authentication. " +
+      "Set VITE_API_KEY in your .env file for production deployments."
+    );
+  }
+  return key;
+}
+
+const API_KEY = getApiKey();
+
+/** Exported so other modules can import the resolved key without duplicating the env lookup. */
+export { API_KEY };
 
 function validateAddress(address: string) {
   if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
@@ -75,7 +98,7 @@ function validateAddress(address: string) {
 export async function getAttribution(address: string): Promise<AttributionResponse> {
   validateAddress(address);
 
-  const res = await fetch(`${API_BASE}/api/attribute?address=${address}`, {
+  const res = await fetch(`${apiUrl("/attribute")}?address=${address}`, {
     headers: { "x-api-key": API_KEY }
   });
   const data = await res.json();
@@ -88,7 +111,7 @@ export async function getAttribution(address: string): Promise<AttributionRespon
 }
 
 export async function getNarrative(attribution: AttributionResponse): Promise<NarrateResponse> {
-  const res = await fetch(`${API_BASE}/api/narrate`, {
+  const res = await fetch(apiUrl("/narrate"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -110,7 +133,7 @@ export async function askFollowUp(
   question: string,
   context: AttributionResponse,
 ): Promise<ChatResponse> {
-  const res = await fetch(`${API_BASE}/api/chat`, {
+  const res = await fetch(apiUrl("/chat"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -171,7 +194,7 @@ export async function askFollowUp(
 }
 
 export async function getConfig(): Promise<{ isDemoMode: boolean }> {
-  const res = await fetch(`${API_BASE}/api/config`, {
+  const res = await fetch(apiUrl("/config"), {
     headers: { "x-api-key": API_KEY },
   });
   const data = await res.json();
@@ -182,14 +205,22 @@ export async function getConfig(): Promise<{ isDemoMode: boolean }> {
 }
 
 export async function exportReport(attributionData: AttributionResponse, format: "pdf" | "csv" = "pdf"): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/report?format=${format}`, {
-    method: "POST",
-    headers: { 
-      "Content-Type": "application/json",
-      "x-api-key": API_KEY,
+  if (!attributionData.requestId) {
+    throw new ApiError(
+      400,
+      "Missing requestId. Re-run the trace before exporting — reports are generated from the stored server-side result.",
+    );
+  }
+
+  const res = await fetch(
+    `${apiUrl("/report")}?format=${format}&requestId=${encodeURIComponent(attributionData.requestId)}`,
+    {
+      method: "GET",
+      headers: {
+        "x-api-key": API_KEY,
+      },
     },
-    body: JSON.stringify(attributionData),
-  });
+  );
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));

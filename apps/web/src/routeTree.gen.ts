@@ -10,16 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CasesRouteImport } from './routes/cases'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MethodologyRouteImport } from './routes/methodology'
+import { Route as SahyogRouteImport } from './routes/sahyog'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ApiPublicAttributeStreamRouteImport } from './routes/api/public/attribute-stream'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CasesRoute = CasesRouteImport.update({
+  id: '/cases',
+  path: '/cases',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -42,6 +49,11 @@ const MethodologyRoute = MethodologyRouteImport.update({
   path: '/methodology',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SahyogRoute = SahyogRouteImport.update({
+  id: '/sahyog',
+  path: '/sahyog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -56,29 +68,35 @@ const ApiPublicAttributeStreamRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cases': typeof CasesRoute
   '/dashboard': typeof DashboardRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/methodology': typeof MethodologyRoute
+  '/sahyog': typeof SahyogRoute
   '/signup': typeof SignupRoute
   '/api/public/attribute-stream': typeof ApiPublicAttributeStreamRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cases': typeof CasesRoute
   '/dashboard': typeof DashboardRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/methodology': typeof MethodologyRoute
+  '/sahyog': typeof SahyogRoute
   '/signup': typeof SignupRoute
   '/api/public/attribute-stream': typeof ApiPublicAttributeStreamRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cases': typeof CasesRoute
   '/dashboard': typeof DashboardRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/methodology': typeof MethodologyRoute
+  '/sahyog': typeof SahyogRoute
   '/signup': typeof SignupRoute
   '/api/public/attribute-stream': typeof ApiPublicAttributeStreamRoute
 }
@@ -86,38 +104,46 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/cases'
     | '/dashboard'
     | '/history'
     | '/login'
     | '/methodology'
+    | '/sahyog'
     | '/signup'
     | '/api/public/attribute-stream'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cases'
     | '/dashboard'
     | '/history'
     | '/login'
     | '/methodology'
+    | '/sahyog'
     | '/signup'
     | '/api/public/attribute-stream'
   id:
     | '__root__'
     | '/'
+    | '/cases'
     | '/dashboard'
     | '/history'
     | '/login'
     | '/methodology'
+    | '/sahyog'
     | '/signup'
     | '/api/public/attribute-stream'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CasesRoute: typeof CasesRoute
   DashboardRoute: typeof DashboardRoute
   HistoryRoute: typeof HistoryRoute
   LoginRoute: typeof LoginRoute
   MethodologyRoute: typeof MethodologyRoute
+  SahyogRoute: typeof SahyogRoute
   SignupRoute: typeof SignupRoute
   ApiPublicAttributeStreamRoute: typeof ApiPublicAttributeStreamRoute
 }
@@ -129,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cases': {
+      id: '/cases'
+      path: '/cases'
+      fullPath: '/cases'
+      preLoaderRoute: typeof CasesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -159,6 +192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MethodologyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sahyog': {
+      id: '/sahyog'
+      path: '/sahyog'
+      fullPath: '/sahyog'
+      preLoaderRoute: typeof SahyogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -178,10 +218,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CasesRoute: CasesRoute,
   DashboardRoute: DashboardRoute,
   HistoryRoute: HistoryRoute,
   LoginRoute: LoginRoute,
   MethodologyRoute: MethodologyRoute,
+  SahyogRoute: SahyogRoute,
   SignupRoute: SignupRoute,
   ApiPublicAttributeStreamRoute: ApiPublicAttributeStreamRoute,
 }

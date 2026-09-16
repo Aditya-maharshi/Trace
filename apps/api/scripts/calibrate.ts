@@ -13,15 +13,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import process from "node:process";
-import { findNearestVASP, ALLOWED_TOKEN_CONTRACTS } from "../lib/graphBuilder";
+import { findNearestVASP, ALLOWED_TOKEN_CONTRACTS } from "../lib/domains/tracing/graphBuilder";
 import {
   getTransactions,
   getTokenTransactions,
   setProviders,
   BlockscoutProvider,
-} from "../lib/etherscan";
-import { buildVaspSet } from "../lib/vaspLabels";
-import { aggregateAttributions } from "../lib/attribution";
+} from "../lib/domains/tracing/etherscan";
+import { buildVaspSet } from "../lib/domains/tracing/vaspLabels";
+import { aggregateAttributions } from "../lib/domains/tracing/attribution";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

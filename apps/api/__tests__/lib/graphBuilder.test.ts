@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import type { Transaction, TokenTransaction } from "../../lib/etherscan";
+import type { Transaction, TokenTransaction } from "../../lib/domains/tracing/etherscan";
 import {
   extractNeighbors,
   extractNormalizedNeighbors,
@@ -16,7 +16,7 @@ import {
   findNearestVASP,
   ALLOWED_TOKEN_CONTRACTS,
   type AggregatedNeighbor,
-} from "../../lib/graphBuilder";
+} from "../../lib/domains/tracing/graphBuilder";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // extractNeighbors
@@ -209,13 +209,13 @@ describe("rankNeighborsByValue", () => {
 // ──────────────────────────────────────────────────────────────────────────────
 
 // Mock the etherscan module so BFS never hits real Etherscan
-vi.mock("../../lib/etherscan", () => ({
+vi.mock("../../lib/domains/tracing/etherscan", () => ({
   getTransactions: vi.fn(),
   getTokenTransactions: vi.fn().mockResolvedValue([]),
 }));
 
 // Import the mocks after vi.mock declaration
-import { getTransactions, getTokenTransactions } from "../../lib/etherscan";
+import { getTransactions, getTokenTransactions } from "../../lib/domains/tracing/etherscan";
 const mockGetTransactions = vi.mocked(getTransactions);
 const mockGetTokenTransactions = vi.mocked(getTokenTransactions);
 
@@ -900,5 +900,61 @@ describe("findNearestVASP bridge-exit detection", () => {
     expect(results.bridgeExitPoints[0].label).toContain("Optimism");
     expect(results.bridgeExitPoints[0].hopIndex).toBe(0);
     expect(mockGetTransactions).not.toHaveBeenCalled();
+  });
+
+  it("flags timeoutReached when the BFS budget is exhausted", async () => {
+    const prev = process.env.BFS_BUDGET_MS;
+    process.env.BFS_BUDGET_MS = "50";
+    const start = 1_000_000;
+    let now = start;
+    const nowSpy = vi.spyOn(Date, "now").mockImplementation(() => now);
+
+    mockGetTransactions.mockImplementation(async () => {
+      now += 100;
+      return {
+        data: [
+          {
+            hash: "0x1",
+            from: "0xstart",
+            to: "0xvasp1",
+            value: "1000",
+            blockNumber: "1",
+            timeStamp: "1000000",
+          },
+        ],
+        provenance: { source: "fixture-cache" as const, fetchedAt: new Date(start).toISOString() },
+        truncated: false,
+      };
+    });
+
+    try {
+      const results = await findNearestVASP("0xstart", new Set(["0xvasp1"]), 3, 15);
+      expect(results.incompleteTraversal.timeoutReached).toBe(true);
+    } finally {
+      nowSpy.mockRestore();
+      if (prev === undefined) delete process.env.BFS_BUDGET_MS;
+      else process.env.BFS_BUDGET_MS = prev;
+    }
+  });
+
+  it("flags historyTruncated when a provider returns a full page of transactions", async () => {
+    mockGetTransactions.mockResolvedValue({
+      data: [
+        {
+          hash: "0x1",
+          from: "0xstart",
+          to: "0xvasp1",
+          value: "1000",
+          blockNumber: "1",
+          timeStamp: "1000000",
+        },
+      ],
+      provenance: { source: "live-etherscan" as const, fetchedAt: new Date().toISOString() },
+      truncated: true,
+    });
+
+    const results = await findNearestVASP("0xstart", new Set(["0xvasp1"]), 3, 15);
+    expect(results.incompleteTraversal.historyTruncated).toBe(true);
+    expect(results.incompleteTraversal.historyTruncatedAddresses).toContain("0xstart");
   });
 });

@@ -20,13 +20,18 @@
  */
 
 import { NextRequest } from "next/server";
-import { findNearestVASP, type BfsProgressEvent } from "../../../lib/graphBuilder";
-import { buildVaspSet } from "../../../lib/vaspLabels";
-import { buildAttributionResponse } from "../../../lib/buildAttributionResponse";
-import { requestContextStorage } from "../../../lib/logger";
+import { findNearestVASP, type BfsProgressEvent } from "../../../lib/domains/tracing/graphBuilder";
+import { buildVaspSet } from "../../../lib/domains/tracing/vaspLabels";
+import { buildAttributionResponse } from "../../../lib/domains/tracing/buildAttributionResponse";
+import { requestContextStorage, logError } from "../../../lib/domains/core/logger";
+import { extractVerifiedUserId } from "../../../lib/domains/auth/verifyJwt";
 import crypto from "crypto";
-import { isValidEthAddress } from "../../../lib/validation";
-import { logLookup } from "../../../lib/auditLog";
+import { isValidEthAddress } from "../../../lib/domains/core/validation";
+import { logLookup } from "../../../lib/domains/core/auditLog";
+import { storeAttributionResult } from "../../../lib/domains/core/resultStore";
+
+/** Stay within Vercel Hobby's 10s hard cap so we can emit a partial SSE complete event. */
+export const maxDuration = 10;
 
 /** Format a single SSE event frame. */
 function sseEvent(event: string, data: unknown): string {
@@ -110,19 +115,14 @@ export async function GET(request: NextRequest) {
           // Build full attribution response using shared pipeline
           const result = await buildAttributionResponse(address, paths);
 
-          // Fire-and-forget audit log
+          await storeAttributionResult(reqId, result).catch((err) => {
+            console.warn("[/api/attribute-stream] Failed to persist trace for report generation:", err);
+          });
+
+          // Fire-and-forget audit log — use shared verified JWT extraction
           const authHeader = request.headers.get("authorization") ?? "";
-          let userId: string | null = null;
-          if (authHeader.startsWith("Bearer ")) {
-            try {
-              const token = authHeader.slice(7);
-              const payloadB64 = token.split(".")[1] ?? "";
-              const payload = JSON.parse(Buffer.from(payloadB64, "base64").toString("utf-8"));
-              userId = payload.sub ?? null;
-            } catch {
-              // Malformed JWT — anonymous
-            }
-          }
+          const userId = extractVerifiedUserId(authHeader);
+
           logLookup({
             userId,
             queriedAddress: address.toLowerCase(),
@@ -138,20 +138,20 @@ export async function GET(request: NextRequest) {
           controller.close();
         } catch (err: unknown) {
           const message = err instanceof Error ? err.message : "Unknown internal error";
+          logError(err, { route: "/api/attribute-stream" });
           enqueue(sseEvent("error", { message }));
           controller.close();
         }
       },
     });
 
+    // CORS headers are handled centrally by middleware.ts — do not set them
+    // inline here, as that would bypass the middleware's origin validation.
     return new Response(stream, {
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
-        "Access-Control-Allow-Origin": request.headers.get("origin") || "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key",
       },
     });
   });

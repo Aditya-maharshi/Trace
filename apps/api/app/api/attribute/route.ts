@@ -37,14 +37,19 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-import { findNearestVASP } from "../../../lib/graphBuilder";
-import { buildVaspSet } from "../../../lib/vaspLabels";
-import { logLookup } from "../../../lib/auditLog";
-import { isValidEthAddress } from "../../../lib/validation";
-import { buildAttributionResponse } from "../../../lib/buildAttributionResponse";
+import { findNearestVASP } from "../../../lib/domains/tracing/graphBuilder";
+import { buildVaspSet } from "../../../lib/domains/tracing/vaspLabels";
+import { logLookup } from "../../../lib/domains/core/auditLog";
+import { isValidEthAddress } from "../../../lib/domains/core/validation";
+import { buildAttributionResponse } from "../../../lib/domains/tracing/buildAttributionResponse";
 import type { AttributionResponse } from "../../../../../packages/shared-types";
-import { requestContextStorage } from "../../../lib/logger";
+import { requestContextStorage, logError } from "../../../lib/domains/core/logger";
+import { extractVerifiedUserId } from "../../../lib/domains/auth/verifyJwt";
+import { storeAttributionResult } from "../../../lib/domains/core/resultStore";
 import crypto from "crypto";
+
+/** Stay within Vercel Hobby's 10s hard cap so we can emit a partial response. */
+export const maxDuration = 10;
 
 interface ErrorResponse {
   error: string;
@@ -96,22 +101,15 @@ export async function GET(
       
       const response = await buildAttributionResponse(address, paths);
 
+      await storeAttributionResult(reqId, response).catch((err: unknown) => {
+        console.warn("[/api/attribute] Failed to persist trace for report generation:", err);
+      });
+
       // ── 9. Fire-and-forget audit log ───────────────────────────────────
-      //    Extract user_id from Authorization header (Supabase JWT) if present.
+      //    Extract user_id from Authorization header (Supabase JWT) —
+      //    now with proper HMAC-SHA256 signature verification.
       const authHeader = request.headers.get("authorization") ?? "";
-      let userId: string | null = null;
-      if (authHeader.startsWith("Bearer ")) {
-        try {
-          const token = authHeader.slice(7);
-          const payloadB64 = token.split(".")[1] ?? "";
-          const payload = JSON.parse(
-            Buffer.from(payloadB64, "base64").toString("utf-8"),
-          );
-          userId = payload.sub ?? null;
-        } catch {
-          // Malformed JWT — treat as anonymous
-        }
-      }
+      const userId = extractVerifiedUserId(authHeader);
 
       logLookup({
         userId,
@@ -148,7 +146,7 @@ export async function GET(
         );
       }
 
-      console.error("[/api/attribute] Unhandled error:", err);
+      logError(err, { route: "/api/attribute" });
 
       return NextResponse.json(
         {

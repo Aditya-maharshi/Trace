@@ -1,7 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { type AttributionResponse, API_BASE } from "@/lib/api";
-
-const API_KEY = import.meta.env["VITE_API_KEY"] || "changeme-key-1";
+import { type AttributionResponse, apiUrl, API_KEY } from "@/lib/api";
 
 export interface BfsProgressMessage {
   type: "exploring" | "fetched" | "vasp_found" | "pruned" | "done";
@@ -39,9 +37,11 @@ export function useAttributionStream() {
     setProgressLog([]);
     setLoading(true);
 
-    // EventSource doesn't support custom headers, so pass API key as query param
-    // The middleware needs to accept it as ?apiKey= fallback for SSE routes
-    const url = `${API_BASE}/api/attribute-stream?address=${encodeURIComponent(address)}&apiKey=${encodeURIComponent(API_KEY)}`;
+    // Route through the server-side SSE proxy to avoid leaking the API key
+    // in the URL (query params land in server access logs, browser history,
+    // and Referer headers). The proxy at /api/public/attribute-stream
+    // forwards the key to the backend via the x-api-key header server-side.
+    const url = `/api/public/attribute-stream?address=${encodeURIComponent(address)}`;
 
     const es = new EventSource(url);
     esRef.current = es;
@@ -63,7 +63,7 @@ export function useAttributionStream() {
 
         // Generate narrative for the result
         if (result.nearestVasp) {
-          fetch(`${API_BASE}/api/narrate`, {
+          fetch(apiUrl("/narrate"), {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

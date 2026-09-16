@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_BASE } from "@/lib/api";
+import { apiUrl, API_KEY } from "@/lib/api";
 
 export interface CryptoPriceData {
   bitcoin: { usd: number; usd_24h_change: number };
@@ -17,10 +17,8 @@ export function useCryptoPrices() {
 
     async function fetchPrices() {
       try {
-        const API_KEY = import.meta.env["VITE_API_KEY"] || "changeme-key-1";
-
-        const res = await fetch(`${API_BASE}/api/prices`, {
-          headers: { "x-api-key": API_KEY }
+        const res = await fetch(apiUrl("/prices"), {
+          headers: API_KEY ? { "x-api-key": API_KEY } : {}
         });
         if (!res.ok) throw new Error("Failed to fetch prices");
         const data = await res.json();

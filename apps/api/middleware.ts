@@ -1,26 +1,45 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { checkRateLimit } from "./lib/rateLimit";
+import { checkRateLimit, parseApiKeyLists, resolveRateLimitIdentity } from "./lib/domains/auth/rateLimit";
+import { extractVerifiedUserIdAsync } from "./lib/domains/auth/verifyJwt";
+import { canonicalApiPath, withApiVersionHeaders } from "./lib/domains/core/apiVersion";
 
 // ---------------------------------------------------------------------------
 // Middleware
 // ---------------------------------------------------------------------------
 export async function middleware(request: NextRequest) {
   const origin = request.headers.get("origin") || "";
-  const allowedOrigin = process.env.FRONTEND_URL || "*";
+  const isProduction = process.env.NODE_ENV === "production";
 
-  // If we require an exact match and it doesn't match, we could block it,
-  // but for local dev and simple setups, we'll allow the env origin or fallback.
-  const responseOrigin = allowedOrigin === "*" ? origin || "*" : allowedOrigin;
+  // ── CORS origin resolution ────────────────────────────────────────────────
+  // In production, FRONTEND_URL must be set — no wildcard fallback.
+  // In dev, fall back to "*" for convenience.
+  const configuredOrigin = process.env.FRONTEND_URL || "";
+  let responseOrigin: string;
+
+  if (configuredOrigin) {
+    // Only allow the exact configured origin (strict match)
+    responseOrigin = origin === configuredOrigin ? configuredOrigin : "";
+  } else if (isProduction) {
+    // Production with no FRONTEND_URL — block cross-origin browser requests
+    console.error(
+      "[middleware] CRITICAL: FRONTEND_URL is not set in production. " +
+      "CORS will block all browser cross-origin requests."
+    );
+    responseOrigin = "";
+  } else {
+    // Dev mode — permissive
+    responseOrigin = origin || "*";
+  }
 
   // Shared CORS headers – reused across every response path so browsers can
   // always read the body (including 401 / 429 error JSON).
-  const corsHeaders: Record<string, string> = {
-    "Access-Control-Allow-Origin": responseOrigin,
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  const corsHeaders: Record<string, string> = withApiVersionHeaders({
+    ...(responseOrigin ? { "Access-Control-Allow-Origin": responseOrigin } : {}),
+    "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key",
     "Access-Control-Max-Age": "86400",
-  };
+  });
 
   // -----------------------------------------------------------------------
   // 0. Auto-relay to Frontend if an OAuth callback landed on the API server
@@ -45,66 +64,115 @@ export async function middleware(request: NextRequest) {
   // -----------------------------------------------------------------------
   // 2. API-key authentication (public endpoints exempt)
   // -----------------------------------------------------------------------
+  const apiPath = canonicalApiPath(pathname);
   const isPublicRoute =
-    pathname === "/api/prices" ||
-    pathname === "/api/health" ||
-    pathname === "/api/docs" ||
-    pathname === "/api/methodology";
+    apiPath === "/api/prices" ||
+    apiPath === "/api/health" ||
+    apiPath === "/api/docs" ||
+    apiPath === "/api/methodology" ||
+    apiPath === "/api/mcp";
 
-  const apiKeysEnv = process.env.API_KEYS ?? "";
-  const validKeys = apiKeysEnv
-    .split(",")
-    .map((k) => k.trim())
-    .filter(Boolean);
+  let apiContext = null;
+  const authHeader = request.headers.get("authorization");
+  
+  if (!isPublicRoute) {
+    let presentedKey = request.headers.get("x-api-key") ?? request.nextUrl.searchParams.get("apiKey") ?? "";
+    if (!presentedKey && authHeader && authHeader.startsWith("Bearer trace_live_sk_")) {
+        presentedKey = authHeader.replace("Bearer ", "");
+    }
+    if (!presentedKey && authHeader && authHeader.startsWith("Bearer trace_test_sk_")) {
+        presentedKey = authHeader.replace("Bearer ", "");
+    }
 
-  const presentedKey = 
-    request.headers.get("x-api-key") ?? 
-    request.nextUrl.searchParams.get("apiKey") ?? 
-    "";
-
-  if (!isPublicRoute && validKeys.length > 0) {
-    // Keys are configured – enforce them for private endpoints.
-    if (!presentedKey || !validKeys.includes(presentedKey)) {
-      return NextResponse.json(
-        { error: "Unauthorized. A valid x-api-key header or apiKey query parameter is required." },
-        { status: 401, headers: corsHeaders },
-      );
+    if (!presentedKey) {
+        // Fall back to guest session / early JWT check if applicable
+        const earlyUserId = await extractVerifiedUserIdAsync(authHeader || "");
+        const isDemoMode = process.env.DEMO_MODE === "true";
+        if (!earlyUserId && !isDemoMode) {
+          return NextResponse.json(
+            { error: "Unauthorized. A valid API Key or Supabase session is required." },
+            { status: 401, headers: corsHeaders }
+          );
+        }
+    } else {
+       // First check: is this key in the simple env-based allow-list (API_KEYS)?
+       // These are pre-approved keys that don't require a DB row.
+       const { parseApiKeyLists } = await import('./lib/domains/auth/rateLimit');
+       const { validKeys } = parseApiKeyLists();
+       if (validKeys.includes(presentedKey)) {
+         // Env-based key is valid — no DB lookup needed. apiContext remains null
+         // (no org/tenant), which means guest-tier rate limits apply.
+       } else {
+         // Fall through to multi-tenant DB resolver for trace_live_sk_ / trace_test_sk_ keys
+         const { resolveAndValidateApiKey } = await import('./lib/domains/auth/authKey');
+         const authResult = await resolveAndValidateApiKey(presentedKey, pathname);
+         if (authResult.error) {
+            return NextResponse.json(
+              { error: authResult.error },
+              { status: authResult.status || 401, headers: corsHeaders }
+            );
+         }
+         apiContext = authResult.context;
+       }
     }
   }
-  // If API_KEYS is empty / unset we fall through – useful during local dev.
 
   // -----------------------------------------------------------------------
-  // 3. Rate limiting (fixed-window counter)
+  // 3. Rate limiting and Quota (tier-isolated fixed-window counters)
   // -----------------------------------------------------------------------
-  const maxReqs = Number(process.env.RATE_LIMIT_MAX) || 100;
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
+  
+  // If we have an API context (multi-tenant), use that for rate limit identity
+  const identityKey = apiContext ? `org:${apiContext.org_id}` : `guest:${ip}`;
+  const maxReqs = apiContext ? (Number(process.env.RATE_LIMIT_PAID_MAX) || 300) : (Number(process.env.RATE_LIMIT_GUEST_MAX) || 30);
   const windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS) || 60_000;
 
-  // Key by the API key when present; fall back to IP for anonymous callers.
-  const rateLimitKey =
-    presentedKey ||
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    "unknown";
-
   const rateLimitResponse = await checkRateLimit(
-    rateLimitKey,
+    identityKey,
     maxReqs,
     windowMs,
     corsHeaders,
   );
+
   if (rateLimitResponse) {
     return rateLimitResponse;
   }
 
+  // Quota checking for paid tiers
+  if (apiContext) {
+      const { checkUsageQuota } = await import('./lib/domains/auth/rateLimit');
+      const quotaResponse = await checkUsageQuota(
+          apiContext.org_id, 
+          apiContext.overage_policy,
+          corsHeaders
+      );
+      if (quotaResponse) {
+          return quotaResponse;
+      }
+  }
+
   // -----------------------------------------------------------------------
-  // 4. Existing CORS handling – untouched
+  // 4. Apply CORS headers to the passthrough response
   // -----------------------------------------------------------------------
   const response = NextResponse.next();
-  response.headers.set("Access-Control-Allow-Origin", responseOrigin);
-  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  if (apiContext) {
+      response.headers.set('x-tenant-org-id', apiContext.org_id);
+      response.headers.set('x-tenant-scopes', JSON.stringify(apiContext.scopes));
+      response.headers.set('x-tenant-env', apiContext.key_env);
+  }
+  
+  if (responseOrigin) {
+    response.headers.set("Access-Control-Allow-Origin", responseOrigin);
+  }
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
   response.headers.set(
     "Access-Control-Allow-Headers",
     "Content-Type, Authorization, x-api-key",
   );
+  response.headers.set("X-API-Version", "1");
 
   return response;
 }

@@ -31,10 +31,8 @@ export function ExplainabilityPanel({
   confidence,
   thresholds,
 }: ExplainabilityPanelProps) {
-  const hopFactorPct = toPercent(breakdown.hopFactor, 1); // max = 1 (1 hop)
-  const valueFactorPct = toPercent(breakdown.valueFactor, 15); // log scale, 15 ≈ $3.3B
-  const recencyFactorPct = toPercent(breakdown.recencyFactor, 1);
-  const scorePct = toPercent(breakdown.score, thresholds.high * 1.5); // relative to High threshold
+  const taintPct = breakdown.taintFraction * 100;
+  const scorePct = toPercent(breakdown.score, 100); 
 
   const daysSince = breakdown.daysSinceLastTx;
   const daysLabel =
@@ -49,75 +47,71 @@ export function ExplainabilityPanel({
       {/* Formula label */}
       <div className="rounded-md bg-muted/40 px-3 py-2 border border-border/40">
         <p className="font-mono text-[11px] text-foreground/60 tracking-tight">
-          score = (1/hops) × ln(1 + valueUSD) × recencyFactor
+          score = volume_weighted_taint_fraction × 100
         </p>
       </div>
 
       {/* Factor rows */}
       <div className="space-y-3">
-        {/* Hop factor */}
+        {/* Taint factor */}
         <div className="space-y-1">
           <div className="flex justify-between text-xs">
             <span className="text-foreground/70 font-medium">
-              Hop distance
+              Taint Propagation
             </span>
             <span className="text-foreground/50 font-mono">
-              {breakdown.hops} hop{breakdown.hops !== 1 ? "s" : ""} → factor{" "}
-              {breakdown.hopFactor.toFixed(3)}
+              {taintPct.toFixed(2)}% arrived
             </span>
           </div>
-          <Progress value={hopFactorPct} className="h-1.5" />
+          <Progress value={taintPct} className="h-1.5" />
           <p className="text-[11px] text-foreground/40">
-            Closer = stronger evidence. Direct link (1 hop) = factor 1.0
+            Percentage of original illicit funds that reached this VASP based on transaction volumes.
           </p>
         </div>
 
-        {/* Value factor */}
-        <div className="space-y-1">
+        {/* Value context */}
+        <div className="space-y-1 mt-4 border-t border-border/20 pt-3">
           <div className="flex justify-between text-xs">
             <span className="text-foreground/70 font-medium">
-              Transaction value
+              Maximum Traceable Value
             </span>
             <span className="text-foreground/50 font-mono">
-              {formatUSD(breakdown.totalValueUSD)} → factor{" "}
-              {breakdown.valueFactor.toFixed(3)}
+              {formatUSD(breakdown.totalValueUSD)}
             </span>
           </div>
-          <Progress value={valueFactorPct} className="h-1.5" />
           <p className="text-[11px] text-foreground/40">
-            Log-scaled: ln(1 + {formatUSD(breakdown.totalValueUSD)}). Diminishing returns on very large amounts.
+            The largest single-hop transfer observed on this path.
           </p>
         </div>
 
-        {/* Recency factor */}
-        <div className="space-y-1">
+        {/* Recency context */}
+        <div className="space-y-1 mt-2">
           <div className="flex justify-between text-xs">
             <span className="text-foreground/70 font-medium">Recency</span>
             <span className="text-foreground/50 font-mono">
-              {daysLabel} → factor {breakdown.recencyFactor.toFixed(3)}
+              {daysLabel}
             </span>
           </div>
-          <Progress value={recencyFactorPct} className="h-1.5" />
           <p className="text-[11px] text-foreground/40">
-            exp(−0.01 × days). Recent activity weighted higher — 1.0 today, ~0.37 after 100 days.
+            Time elapsed since the most recent transaction on this path.
           </p>
         </div>
       </div>
 
       {/* Combined score */}
-      <div className="space-y-1 pt-1 border-t border-border/40">
+      <div className="space-y-1 pt-3 border-t border-border/40 mt-4">
         <div className="flex justify-between text-xs">
-          <span className="text-foreground/70 font-medium">Combined score</span>
+          <span className="text-foreground/70 font-medium">Final Taint Score</span>
           <span className="text-foreground/80 font-mono font-semibold">
-            {breakdown.score.toFixed(3)}
+            {breakdown.score.toFixed(2)}
           </span>
         </div>
         <Progress value={scorePct} className="h-2" />
         <p className="text-[11px] text-foreground/50 leading-relaxed">
-          {breakdown.score.toFixed(3)} →{" "}
-          {breakdown.score > thresholds.high
+          {breakdown.score.toFixed(2)} →{" "}
+          {breakdown.score >= thresholds.high
             ? `above High threshold (${thresholds.high}) → `
-            : breakdown.score > thresholds.medium
+            : breakdown.score >= thresholds.medium
               ? `between Medium (${thresholds.medium}) and High (${thresholds.high}) thresholds → `
               : `below Medium threshold (${thresholds.medium}) → `}
           <strong>{confidence}</strong> confidence

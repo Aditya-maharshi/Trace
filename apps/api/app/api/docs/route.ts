@@ -8,7 +8,8 @@ const swaggerDoc = {
     description: "API for tracing and attributing Ethereum wallets to known VASPs, bridges, and mixers.",
   },
   servers: [
-    { url: "/api", description: "Current API Environment" }
+    { url: "/api/v1", description: "Stable v1 contract (preferred)" },
+    { url: "/api", description: "Unversioned alias of v1 (backward compatible)" },
   ],
   components: {
     securitySchemes: {

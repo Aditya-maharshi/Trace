@@ -11,10 +11,10 @@ export const Route = createFileRoute("/api/public/attribute-stream")({
         }
 
         const API_BASE = process.env["VITE_API_URL"] || "http://localhost:3000";
-        const API_KEY = process.env["VITE_API_KEY"] || "changeme-key-1";
+        const API_KEY = process.env["VITE_API_KEY"] || "";
 
         try {
-          const res = await fetch(`${API_BASE}/api/attribute-stream?address=${address}`, {
+          const res = await fetch(`${API_BASE}/api/v1/attribute-stream?address=${address}`, {
             headers: {
               "x-api-key": API_KEY,
             },

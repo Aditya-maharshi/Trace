@@ -12,7 +12,7 @@ import {
   labelFor,
   getVaspLabels,
   clearVaspCache,
-} from "../../lib/vaspLabels";
+} from "../../lib/domains/tracing/vaspLabels";
 
 describe("vaspLabels", () => {
   beforeEach(() => {

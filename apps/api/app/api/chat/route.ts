@@ -12,7 +12,7 @@
  *   event: error     data: { "message": "..." }
  */
 
-import { streamChatAnswer } from "../../../lib/gemini";
+import { streamChatAnswer } from "../../../lib/domains/ai/gemini";
 import { NextRequest } from "next/server";
 
 function sseEvent(event: string, data: unknown): string {

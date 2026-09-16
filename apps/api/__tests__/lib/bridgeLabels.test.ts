@@ -10,7 +10,7 @@ import {
   buildBridgeSet,
   labelForBridge,
   isBridge,
-} from "../../lib/bridgeLabels";
+} from "../../lib/domains/tracing/bridgeLabels";
 
 describe("bridgeLabels", () => {
   it("contains registry of well-known bridges", () => {

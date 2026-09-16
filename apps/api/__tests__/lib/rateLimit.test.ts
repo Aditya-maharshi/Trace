@@ -5,8 +5,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { checkRateLimit, resetInMemoryRateLimit } from "../../lib/rateLimit";
-import { setRedisClientForTesting, resetRedisClient } from "../../lib/redis";
+import { checkRateLimit, resetInMemoryRateLimit, resolveRateLimitIdentity } from "../../lib/domains/auth/rateLimit";
+import { setRedisClientForTesting, resetRedisClient } from "../../lib/domains/core/redis";
 import type { Redis } from "@upstash/redis";
 
 describe("Rate Limiting (In-Memory & Upstash Redis)", () => {
@@ -116,6 +116,58 @@ describe("Rate Limiting (In-Memory & Upstash Redis)", () => {
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining("Persistent KV store unreachable"),
       );
+    });
+  });
+
+  describe("Tier isolation", () => {
+    const prev = { ...process.env };
+
+    afterEach(() => {
+      process.env.RATE_LIMIT_GUEST_MAX = prev.RATE_LIMIT_GUEST_MAX;
+      process.env.RATE_LIMIT_USER_MAX = prev.RATE_LIMIT_USER_MAX;
+      process.env.RATE_LIMIT_PAID_MAX = prev.RATE_LIMIT_PAID_MAX;
+      process.env.RATE_LIMIT_WINDOW_MS = prev.RATE_LIMIT_WINDOW_MS;
+    });
+
+    it("puts paid keys and guest IPs on separate counters and quotas", () => {
+      process.env.RATE_LIMIT_GUEST_MAX = "5";
+      process.env.RATE_LIMIT_PAID_MAX = "200";
+      process.env.RATE_LIMIT_WINDOW_MS = "60000";
+
+      const paid = resolveRateLimitIdentity({
+        presentedKey: "sk-paid",
+        validKeys: ["sk-paid", "sk-public"],
+        publicKeys: ["sk-public"],
+        userId: null,
+        ip: "1.1.1.1",
+      });
+      const guest = resolveRateLimitIdentity({
+        presentedKey: "sk-public",
+        validKeys: ["sk-paid", "sk-public"],
+        publicKeys: ["sk-public"],
+        userId: null,
+        ip: "1.1.1.1",
+      });
+
+      expect(paid.tier).toBe("paid");
+      expect(guest.tier).toBe("guest");
+      expect(paid.key).toBe("paid:sk-paid");
+      expect(guest.key).toBe("guest:1.1.1.1");
+      expect(paid.maxReqs).toBe(200);
+      expect(guest.maxReqs).toBe(5);
+      expect(paid.key).not.toBe(guest.key);
+    });
+
+    it("keys authenticated users separately from guest IPs", () => {
+      const user = resolveRateLimitIdentity({
+        presentedKey: "sk-public",
+        validKeys: ["sk-public"],
+        publicKeys: ["sk-public"],
+        userId: "user-123",
+        ip: "8.8.8.8",
+      });
+      expect(user.tier).toBe("user");
+      expect(user.key).toBe("user:user-123");
     });
   });
 });

@@ -16,9 +16,9 @@
  *   npx tsx scripts/smokeTestTwoInstances.ts
  */
 
-import { checkRateLimit } from "../lib/rateLimit";
-import { readCache, writeCache } from "../lib/etherscan";
-import { setRedisClientForTesting, resetRedisClient } from "../lib/redis";
+import { checkRateLimit } from "../lib/domains/auth/rateLimit";
+import { readCache, writeCache } from "../lib/domains/tracing/etherscan";
+import { setRedisClientForTesting, resetRedisClient } from "../lib/domains/core/redis";
 import type { Redis } from "@upstash/redis";
 
 // Shared in-memory KV store to simulate a remote Upstash Redis instance

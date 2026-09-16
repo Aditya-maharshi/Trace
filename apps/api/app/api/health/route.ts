@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getRedisClient } from "../../../lib/redis";
-import { getSupabaseAdmin } from "../../../lib/auditLog";
+import { getRedisClient } from "../../../lib/domains/core/redis";
+import { getSupabaseAdmin } from "../../../lib/domains/core/auditLog";
 
 export async function GET() {
   const status: Record<string, "ok" | "failed" | "unconfigured"> = {};
@@ -8,7 +8,7 @@ export async function GET() {
 
   // Etherscan Check
   try {
-    const res = await fetch(`https://api.etherscan.io/api?module=proxy&action=eth_blockNumber&apikey=${process.env.ETHERSCAN_API_KEY || ""}`);
+    const res = await fetch(`https://api.etherscan.io/v2/api?chainid=1&module=proxy&action=eth_blockNumber&apikey=${process.env.ETHERSCAN_API_KEY || ""}`);
     if (res.ok) {
       status.etherscan = "ok";
     } else {

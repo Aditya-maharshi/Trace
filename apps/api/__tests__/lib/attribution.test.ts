@@ -15,9 +15,9 @@ import {
   combineScores,
   toConfidence,
   aggregateAttributions,
-} from "../../lib/attribution";
-import type { PathResult } from "../../lib/graphBuilder";
-import type { Transaction, TokenTransaction } from "../../lib/etherscan";
+} from "../../lib/domains/tracing/attribution";
+import type { PathResult } from "../../lib/domains/tracing/graphBuilder";
+import type { Transaction, TokenTransaction } from "../../lib/domains/tracing/etherscan";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // weiToUSD — precision and rounding

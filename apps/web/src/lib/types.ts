@@ -1,5 +1,5 @@
 export type ConfidenceLevel = "High" | "Medium" | "Low";
-export type RiskLevel = "LOW" | "HIGH";
+export type RiskLevel = "LOW" | "HIGH" | "UNKNOWN";
 
 export interface PathHop {
   address: string;

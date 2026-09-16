@@ -26,6 +26,12 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@sih/shared-types": [
+        "../../packages/shared-types/index.ts"
+      ],
+      "@sih/shared-types/*": [
+        "../../packages/shared-types/*"
       ]
     },
     "allowJs": true,

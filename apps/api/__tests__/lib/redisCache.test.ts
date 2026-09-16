@@ -10,8 +10,8 @@ import {
   writeCache,
   clearTransactionCache,
   type Transaction,
-} from "../../lib/etherscan";
-import { setRedisClientForTesting, resetRedisClient } from "../../lib/redis";
+} from "../../lib/domains/tracing/etherscan";
+import { setRedisClientForTesting, resetRedisClient } from "../../lib/domains/core/redis";
 import type { Redis } from "@upstash/redis";
 
 describe("Persistent Redis Caching (lib/etherscan.ts)", () => {
@@ -53,7 +53,7 @@ describe("Persistent Redis Caching (lib/etherscan.ts)", () => {
 
     const result = await readCache<Transaction[]>("tx_0xabc_100");
     expect(mockGet).toHaveBeenCalledWith("cache:tx_0xabc_100");
-    expect(result).toEqual(sampleData);
+    expect(result).toEqual({ data: sampleData, cachedAt: expect.any(Number) });
   });
 
   it("writes to Redis cache with TTL", async () => {
@@ -93,7 +93,7 @@ describe("Persistent Redis Caching (lib/etherscan.ts)", () => {
 
     const result = await readCache<Transaction[]>("tx_0xfallback_100");
     // Should successfully retrieve from local in-memory/disk fallback
-    expect(result).toEqual(sampleData);
+    expect(result).toEqual({ data: sampleData, cachedAt: expect.any(Number) });
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining("Persistent Redis cache read failed"),
     );

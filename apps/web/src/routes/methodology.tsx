@@ -37,9 +37,9 @@ function MethodologyPage() {
   useEffect(() => {
     const env = (import.meta.env || {}) as Record<string, string | undefined>;
     const API_BASE = env['VITE_API_URL'] || (typeof window !== 'undefined' && window.location.port === '8083' ? 'http://localhost:3000' : '');
-    const API_KEY = env['VITE_API_KEY'] || "changeme-key-1";
+    const API_KEY = env['VITE_API_KEY'] || "";
 
-    const url = (API_BASE ? API_BASE : '') + '/api/methodology';
+    const url = (API_BASE ? API_BASE : '') + '/api/v1/methodology';
     fetch(url, {
       headers: API_KEY ? { "x-api-key": API_KEY } : {}
     })

@@ -14,8 +14,8 @@ create table if not exists public.lookups (
 );
 
 -- RLS: users can only read their own lookups.
--- Backend writes via service-role key (bypasses RLS), so no insert policy
--- is needed for end-users.
+-- Client INSERT/UPDATE/DELETE are denied in 20260914120000_lookups_rls_write_deny.sql.
+-- Backend writes via service-role key (bypasses RLS).
 alter table public.lookups enable row level security;
 
 create policy "Users can view own lookups"

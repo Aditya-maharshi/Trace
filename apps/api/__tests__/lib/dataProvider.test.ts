@@ -11,10 +11,12 @@ import {
   clearTransactionCache,
   setProviders,
   resetProviders,
+  resolveEtherscanBaseUrl,
+  ETHERSCAN_V2_BASE_URL,
   type BlockchainDataProvider,
   type Transaction,
   type TokenTransaction,
-} from "../../lib/etherscan";
+} from "../../lib/domains/tracing/etherscan";
 
 describe("BlockchainDataProvider Caching & Fallback", () => {
   let mockPrimary: BlockchainDataProvider;
@@ -68,13 +70,14 @@ describe("BlockchainDataProvider Caching & Fallback", () => {
 
     // 1st call: queries primary
     const res1 = await getTransactions(address, 100);
-    expect(res1).toEqual([sampleTx]);
+    expect(res1.data).toEqual([sampleTx]);
+    expect(res1.truncated).toBe(false);
     expect(mockPrimary.getTransactions).toHaveBeenCalledTimes(1);
     expect(mockFallback.getTransactions).not.toHaveBeenCalled();
 
     // 2nd call: served from in-memory cache
     const res2 = await getTransactions(address, 100);
-    expect(res2).toEqual([sampleTx]);
+    expect(res2.data).toEqual([sampleTx]);
     expect(mockPrimary.getTransactions).toHaveBeenCalledTimes(1); // not called again!
   });
 
@@ -82,11 +85,11 @@ describe("BlockchainDataProvider Caching & Fallback", () => {
     const address = "0x1111111111111111111111111111111111111111";
 
     const res1 = await getTokenTransactions(address, 50);
-    expect(res1).toEqual([sampleTokenTx]);
+    expect(res1.data).toEqual([sampleTokenTx]);
     expect(mockPrimary.getTokenTransactions).toHaveBeenCalledTimes(1);
 
     const res2 = await getTokenTransactions(address, 50);
-    expect(res2).toEqual([sampleTokenTx]);
+    expect(res2.data).toEqual([sampleTokenTx]);
     expect(mockPrimary.getTokenTransactions).toHaveBeenCalledTimes(1);
   });
 
@@ -116,11 +119,11 @@ describe("BlockchainDataProvider Caching & Fallback", () => {
 
     expect(mockPrimary.getTransactions).toHaveBeenCalledTimes(1);
     expect(mockFallback.getTransactions).toHaveBeenCalledTimes(1);
-    expect(res).toEqual([fallbackTx]);
+    expect(res.data).toEqual([fallbackTx]);
 
     // Subsequent call should be served from cache
     const cached = await getTransactions(address, 100);
-    expect(cached).toEqual([fallbackTx]);
+    expect(cached.data).toEqual([fallbackTx]);
     expect(mockFallback.getTransactions).toHaveBeenCalledTimes(1);
   });
 
@@ -136,5 +139,25 @@ describe("BlockchainDataProvider Caching & Fallback", () => {
 
     expect(mockPrimary.getTransactions).toHaveBeenCalledTimes(1);
     expect(mockFallback.getTransactions).toHaveBeenCalledTimes(1);
+  });
+
+  it("flags truncated when the provider marks extra history beyond pageSize", async () => {
+    const address = "0x4444444444444444444444444444444444444444";
+    const page = Object.assign([sampleTx], { truncated: true });
+    mockPrimary.getTransactions = vi.fn().mockResolvedValue(page);
+
+    const res = await getTransactions(address, 100);
+    expect(res.data).toEqual([sampleTx]);
+    expect(res.truncated).toBe(true);
+  });
+});
+
+describe("Etherscan V2 URL resolution", () => {
+  it("rewrites deprecated V1 host to the V2 unified endpoint", () => {
+    expect(resolveEtherscanBaseUrl()).toBe(ETHERSCAN_V2_BASE_URL);
+    expect(resolveEtherscanBaseUrl("https://api.etherscan.io/api")).toBe(ETHERSCAN_V2_BASE_URL);
+    expect(resolveEtherscanBaseUrl("https://api.etherscan.io/v2/api")).toBe(
+      "https://api.etherscan.io/v2/api",
+    );
   });
 });
