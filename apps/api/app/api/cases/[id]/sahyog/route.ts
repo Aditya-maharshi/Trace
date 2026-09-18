@@ -51,6 +51,17 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       );
     }
 
+    // Role-based check
+    const scopesHeader = req.headers.get("x-tenant-scopes");
+    if (scopesHeader) {
+      try {
+        const scopes = JSON.parse(scopesHeader);
+        if (!scopes.includes("investigator") && !scopes.includes("officer")) {
+          return NextResponse.json({ error: "Forbidden: investigator or officer role required to draft legal instruments" }, { status: 403 });
+        }
+      } catch (e) {}
+    }
+
     const payloadHash = computePayloadHash(stored);
     const sahyogPayload = compileSahyogPayload(stored, caseId, payloadHash);
     

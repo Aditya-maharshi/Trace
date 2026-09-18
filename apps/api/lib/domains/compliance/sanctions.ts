@@ -245,14 +245,24 @@ export async function checkSanctionedDetailed(
     }
 
     const startMs = Date.now();
-    const res = await fetch(url.toString(), { headers });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    let res: Response;
+    try {
+      res = await fetch(url.toString(), { headers, signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    
     const latencyMs = Date.now() - startMs;
     logApiTrace("OpenSanctions", latencyMs, res.status, { endpoint: OPENSANCTIONS_BASE_URL });
 
     if (!res.ok) {
       if (res.status === 401) {
-        console.warn("[Sanctions] OpenSanctions 401 Unauthorized. Bypassing for local testing.");
-        return { address: normalizedAddress, sanctioned: false, matchCount: 0, checkedAt: new Date().toISOString() };
+        throw new Error(
+          "OpenSanctions API Key is invalid or expired. Sanctions screening unavailable.",
+        );
       }
       // If rate-limited, throw a descriptive error
       if (res.status === 429) {

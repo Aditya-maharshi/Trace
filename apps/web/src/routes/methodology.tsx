@@ -75,7 +75,7 @@ function MethodologyPage() {
             </span>
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#f7931a] to-[#ffaa40] text-[#08080c] text-xs font-bold px-4 py-2 rounded-lg shadow-[0_0_15px_rgba(247,147,26,0.35)] hover:shadow-[0_0_22px_rgba(247,147,26,0.6)] hover:from-[#ffaa40] hover:to-[#f7931a] transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 bg-emerald-600 from-[#f7931a] to-[#ffaa40] text-[#08080c] text-xs font-bold px-4 py-2 rounded-lg shadow-[0_0_15px_rgba(247,147,26,0.35)] hover:shadow-[0_0_22px_rgba(247,147,26,0.6)] hover:from-[#ffaa40] hover:to-[#f7931a] transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <span>Launch Engine</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -202,7 +202,7 @@ function MethodologyPage() {
         </div>
 
         {/* Bottom CTA Section */}
-        <div className="bg-gradient-to-b from-white/[0.04] to-transparent border border-white/10 rounded-xl p-8 text-center space-y-4 relative overflow-hidden">
+        <div className="bg-emerald-600 from-white/[0.04] to-transparent border border-white/10 rounded-xl p-8 text-center space-y-4 relative overflow-hidden">
           <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#f7931a]/10 border border-[#f7931a]/30 text-[#f7931a]">
             <Sparkles className="w-5 h-5" />
           </div>
@@ -213,7 +213,7 @@ function MethodologyPage() {
           <div className="pt-2">
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#f7931a] to-[#ffaa40] text-[#08080c] text-sm font-bold px-6 py-2.5 rounded-lg shadow-[0_0_20px_rgba(247,147,26,0.4)] hover:shadow-[0_0_28px_rgba(247,147,26,0.65)] hover:from-[#ffaa40] hover:to-[#f7931a] transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="inline-flex items-center gap-2 bg-emerald-600 from-[#f7931a] to-[#ffaa40] text-[#08080c] text-sm font-bold px-6 py-2.5 rounded-lg shadow-[0_0_20px_rgba(247,147,26,0.4)] hover:shadow-[0_0_28px_rgba(247,147,26,0.65)] hover:from-[#ffaa40] hover:to-[#f7931a] transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <span>Launch Forensic Engine</span>
               <ArrowRight className="w-4 h-4" />

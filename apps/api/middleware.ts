@@ -62,9 +62,31 @@ export async function middleware(request: NextRequest) {
   }
 
   // -----------------------------------------------------------------------
-  // 2. API-key authentication (public endpoints exempt)
+  // 1.5 MCP Gateway Hardening (S-11 & S-12)
   // -----------------------------------------------------------------------
   const apiPath = canonicalApiPath(pathname);
+  if (apiPath.startsWith("/api/mcp")) {
+    const mcpSecret = process.env.MCP_M2M_SECRET;
+    const authHeaderMcp = request.headers.get("authorization") || request.headers.get("x-mcp-auth-token") || "";
+    
+    // S-12: Mandatory M2M Bearer token check
+    if (!mcpSecret || (authHeaderMcp !== `Bearer ${mcpSecret}` && authHeaderMcp !== mcpSecret)) {
+      return NextResponse.json({ error: "Unauthorized MCP access" }, { status: 401, headers: corsHeaders });
+    }
+
+    // S-11: Strict host validation
+    const allowedHost = process.env.MCP_ALLOWED_HOST;
+    if (allowedHost) {
+      const host = request.headers.get("host") || "";
+      if (host !== allowedHost) {
+        return NextResponse.json({ error: "Host not allowed for MCP" }, { status: 403, headers: corsHeaders });
+      }
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // 2. API-key authentication (public endpoints exempt)
+  // -----------------------------------------------------------------------
   const isPublicRoute =
     apiPath === "/api/prices" ||
     apiPath === "/api/health" ||
@@ -89,6 +111,14 @@ export async function middleware(request: NextRequest) {
         const earlyUserId = await extractVerifiedUserIdAsync(authHeader || "");
         const isDemoMode = process.env.DEMO_MODE === "true";
         if (!earlyUserId && !isDemoMode) {
+          console.warn(JSON.stringify({
+            event: "security_alert",
+            type: "auth_failure",
+            reason: "missing_credentials",
+            path: pathname,
+            ip: request.headers.get("x-forwarded-for") || "unknown",
+            timestamp: new Date().toISOString()
+          }));
           return NextResponse.json(
             { error: "Unauthorized. A valid API Key or Supabase session is required." },
             { status: 401, headers: corsHeaders }
@@ -107,6 +137,15 @@ export async function middleware(request: NextRequest) {
          const { resolveAndValidateApiKey } = await import('./lib/domains/auth/authKey');
          const authResult = await resolveAndValidateApiKey(presentedKey, pathname);
          if (authResult.error) {
+            console.warn(JSON.stringify({
+              event: "security_alert",
+              type: "auth_failure",
+              reason: authResult.error,
+              key_prefix: presentedKey.substring(0, 15) + "...",
+              path: pathname,
+              ip: request.headers.get("x-forwarded-for") || "unknown",
+              timestamp: new Date().toISOString()
+            }));
             return NextResponse.json(
               { error: authResult.error },
               { status: authResult.status || 401, headers: corsHeaders }
@@ -157,12 +196,23 @@ export async function middleware(request: NextRequest) {
   // -----------------------------------------------------------------------
   // 4. Apply CORS headers to the passthrough response
   // -----------------------------------------------------------------------
-  const response = NextResponse.next();
+  
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete('x-tenant-org-id');
+  requestHeaders.delete('x-tenant-scopes');
+  requestHeaders.delete('x-tenant-env');
+  
   if (apiContext) {
-      response.headers.set('x-tenant-org-id', apiContext.org_id);
-      response.headers.set('x-tenant-scopes', JSON.stringify(apiContext.scopes));
-      response.headers.set('x-tenant-env', apiContext.key_env);
+      requestHeaders.set('x-tenant-org-id', apiContext.org_id);
+      requestHeaders.set('x-tenant-scopes', JSON.stringify(apiContext.scopes));
+      requestHeaders.set('x-tenant-env', apiContext.key_env);
   }
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
   
   if (responseOrigin) {
     response.headers.set("Access-Control-Allow-Origin", responseOrigin);
@@ -173,6 +223,14 @@ export async function middleware(request: NextRequest) {
     "Content-Type, Authorization, x-api-key",
   );
   response.headers.set("X-API-Version", "1");
+  
+  // Security Headers
+  response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: wss:; font-src 'self' data:; frame-ancestors 'none';");
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
   return response;
 }

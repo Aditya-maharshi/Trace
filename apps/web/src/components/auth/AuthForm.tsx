@@ -83,6 +83,9 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
     setSuccessMsg(null);
     setOauthFallbackProvider(null);
 
+    // Read redirect param at call-time (not inside stale closure from useEffect)
+    const params = new URLSearchParams(window.location.search);
+
     if (isSignup && password !== confirm) {
       setError("Passwords don't match.");
       return;
@@ -111,8 +114,10 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
           return;
         }
 
+        const targetUrl = params.get("redirect") || "/dashboard";
+
         if (authData.session) {
-          navigate({ to: "/dashboard" });
+          navigate({ to: targetUrl as any });
         } else {
           setSuccessMsg(
             "Account created! Please check your email inbox to confirm your address before logging in.",
@@ -130,8 +135,10 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
           return;
         }
 
+        const targetUrl = params.get("redirect") || "/dashboard";
+
         if (authData.session) {
-          navigate({ to: "/dashboard" });
+          navigate({ to: targetUrl as any });
         }
       }
     } catch (err) {
@@ -146,11 +153,17 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
     setOauthFallbackProvider(null);
     setLoading(true);
 
+    const params = new URLSearchParams(window.location.search);
+
     try {
+      const rawTarget = params.get("redirect") || "/dashboard";
+      const allowedTargets = ["/dashboard", "/government", "/commercial"];
+      const targetUrl = allowedTargets.includes(rawTarget) ? rawTarget : "/dashboard";
+      
       const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}${targetUrl}`,
           queryParams: {
             prompt: "select_account",
             access_type: "offline",

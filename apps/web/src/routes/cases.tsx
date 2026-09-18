@@ -76,8 +76,7 @@ function CasesPage() {
         <div
           className="absolute inset-0 opacity-[0.025]"
           style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
+            backgroundColor: "#06060a",
             backgroundSize: "60px 60px",
           }}
         />

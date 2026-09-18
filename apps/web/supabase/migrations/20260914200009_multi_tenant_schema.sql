@@ -39,10 +39,10 @@ ALTER TABLE usage_events ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "usage_events_org_isolation" ON usage_events
   FOR ALL
-  USING (org_id = current_setting('app.org_id', true));
+  USING (org_id = current_setting('app.current_org_id', true));
 
 -- Update any orgs policies to rely on app.org_id (assuming orgs is readable by members)
 ALTER TABLE orgs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "orgs_isolation" ON orgs
   FOR SELECT
-  USING (id::text = current_setting('app.org_id', true));
+  USING (id::text = current_setting('app.current_org_id', true));

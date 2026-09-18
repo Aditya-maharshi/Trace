@@ -182,3 +182,11 @@ All automatic fixes were re-tested against the complete Phase 1 gate:
 | **Production Build** (`npm run build`) | **PASS** | **PASS** | Nitro SSR server and Vite client bundles built cleanly. |
 | **Linter** (`npm run lint`) | N/A (No config) | **PASS (0 errors, 6 standard warnings)** | All Prettier errors, `any` casts, and `prefer-const` warnings resolved. |
 | **Automated Tests** (`npm test`) | **PASS (90/90 tests)** | N/A (`NEEDS-DECISION`) | All 7 test suites pass in Backend_1. |
+
+## Phase 9 - Government/Commercial Split
+- **Subdomain vs Path-based Split**: We chose the path-based approach (/government vs /commercial) for simplicity of deployment and session management. (Status: FIXED)
+
+## Phase 10 - External Chatbot Integration
+- **API Documentation**: Mocked external API details as requested by user. (Status: FIXED)
+- **Backend Proxy**: Replaced Gemini streaming with standard JSON fetch to the external bot API, including fallback logic. (Status: FIXED)
+- **Frontend Bug Fix**: Added response.ok check in FollowUpChat.tsx to prevent silent swallow of 4xx/5xx errors. (Status: FIXED)

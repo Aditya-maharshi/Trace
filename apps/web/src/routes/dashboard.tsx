@@ -94,8 +94,7 @@ function Dashboard() {
         <div
           className="absolute inset-0 opacity-[0.035]"
           style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`,
+            backgroundColor: "#06060a",
             backgroundSize: "60px 60px",
           }}
         />
@@ -171,7 +170,7 @@ function Dashboard() {
               </div>
               <h1 className="text-5xl md:text-6xl font-serif font-semibold text-white leading-tight mb-4 drop-shadow-2xl">
                 Trace every<br />
-                <span className="bg-gradient-to-r from-[#f7931a] to-[#2fe3a3] bg-clip-text text-transparent">
+                <span className="bg-emerald-600 from-[#f7931a] to-[#2fe3a3]  text-emerald-500">
                   on-chain move
                 </span>
               </h1>

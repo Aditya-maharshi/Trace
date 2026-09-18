@@ -1,0 +1,250 @@
+/**
+ * lib/traceAI/citations/resolver.ts
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Builds a CitationRegistry from authoritative server-side data.
+ *
+ * INVARIANT: Citation content is ONLY sourced from:
+ *   1. The deterministic attribution result
+ *   2. Validated tool execution results
+ *   3. Other server-side authoritative data
+ *
+ * INVARIANT: The LLM never creates citation content.
+ *   It only emits markers (e.g. [[cite:hop-0-2]]) that we resolve here.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+import { v4 as uuidv4 } from "uuid";
+import type {
+  Citation,
+  AttributionResult,
+  PathResult,
+  PathHop,
+  TraceToolResult,
+} from "../types";
+import type { CitationRegistry } from "./types";
+
+/**
+ * Build a complete CitationRegistry from all available authoritative sources.
+ * Must be called BEFORE the LLM generates its response.
+ */
+export function buildCitationRegistry(params: {
+  attributionResult?: AttributionResult;
+  toolResults?: TraceToolResult[];
+}): CitationRegistry {
+  const citations = new Map<string, Citation>();
+
+  if (params.attributionResult) {
+    populateFromAttribution(citations, params.attributionResult);
+  }
+
+  for (const toolResult of params.toolResults ?? []) {
+    populateFromToolResult(citations, toolResult);
+  }
+
+  return {
+    citations,
+    sourceData: {
+      attributionResult: params.attributionResult,
+      toolResults: params.toolResults,
+    },
+  };
+}
+
+// ─── Attribution Result Population ───────────────────────────────────────────
+
+function populateFromAttribution(
+  registry: Map<string, Citation>,
+  result: AttributionResult
+): void {
+  // Path-hop citations
+  for (const path of result.paths) {
+    for (const hop of path.hops) {
+      const citation = buildPathHopCitation(path, hop);
+      registry.set(citation.id, citation);
+    }
+
+    // Transaction citations for each hop
+    for (const hop of path.hops) {
+      if (hop.transactionHash) {
+        const txCitation = buildTransactionCitation(hop);
+        if (txCitation) registry.set(txCitation.id, txCitation);
+      }
+    }
+  }
+
+  // Sanctions citations
+  if (result.sanctionsDetail?.status === "MATCH") {
+    for (const match of result.sanctionsDetail.matches ?? []) {
+      const citation: Citation = {
+        type: "sanctions_match",
+        id: `sanctions-${match.matchId}`,
+        matchId: match.matchId,
+        source: match.source,
+        entityName: match.entityName,
+        queryAddress: result.address,
+        screenedAt: result.sanctionsDetail.screenedAt ?? new Date().toISOString(),
+      };
+      registry.set(citation.id, citation);
+    }
+  }
+
+  // VASP label citations (nearest VASP)
+  if (result.nearestVasp) {
+    const vaspCitation: Citation = {
+      type: "vasp_label",
+      id: `vasp-${result.address}`,
+      address: result.address,
+      vaspName: result.nearestVasp,
+      provider: result.methodology?.vaspDatasetSource ?? "trace_engine",
+      label: result.nearestVasp,
+      datasetVersion: result.traceVersion,
+      refreshedAt: result.methodology?.vaspDatasetRefreshedAt,
+    };
+    registry.set(vaspCitation.id, vaspCitation);
+  }
+
+  // Bridge exit citations
+  for (const bridgeExit of result.bridgeExitPoints ?? []) {
+    const citation: Citation = {
+      type: "bridge_contract",
+      id: `bridge-${bridgeExit.contractAddress}-hop-${bridgeExit.hopIndex}`,
+      chain: bridgeExit.chain,
+      contractAddress: bridgeExit.contractAddress,
+      verifiedLabel: bridgeExit.verifiedLabel,
+      exitStatus: bridgeExit.exitStatus,
+    };
+    registry.set(citation.id, citation);
+  }
+
+  // ENS citations
+  for (const [address, ensName] of Object.entries(result.ensNames ?? {})) {
+    const citation: Citation = {
+      type: "ens",
+      id: `ens-${address}`,
+      address,
+      ensName,
+    };
+    registry.set(citation.id, citation);
+  }
+
+  // Methodology citation
+  if (result.methodology) {
+    const citation: Citation = {
+      type: "methodology",
+      id: "methodology-trace",
+      key: "trace_methodology",
+      description: `Score formula: ${result.methodology.scoreFormula ?? "score = (1/hops) × ln(1 + totalValueUSD) × recencyFactor"}`,
+      source: result.methodology.vaspDatasetSource,
+    };
+    registry.set(citation.id, citation);
+  }
+}
+
+function buildPathHopCitation(path: PathResult, hop: PathHop): Citation {
+  return {
+    type: "path_hop",
+    id: `path-${path.pathIndex}-hop-${hop.hopIndex}`,
+    pathIndex: path.pathIndex,
+    hopIndex: hop.hopIndex,
+    address: hop.address,
+    transactionHash: hop.transactionHash,
+    asset: hop.asset,
+    value: hop.value,
+    timestamp: hop.timestamp,
+  };
+}
+
+function buildTransactionCitation(hop: PathHop): Citation | null {
+  if (!hop.transactionHash) return null;
+
+  // INVARIANT: Explorer URLs are generated by trusted server code from
+  // chain + txHash — NEVER by the LLM.
+  const explorerUrl = buildExplorerUrl("ethereum", hop.transactionHash);
+
+  return {
+    type: "transaction",
+    id: `tx-${hop.transactionHash}`,
+    chain: "ethereum", // Derived from deterministic result
+    txHash: hop.transactionHash,
+    explorerUrl,
+    timestamp: hop.timestamp,
+  };
+}
+
+// ─── Tool Result Population ───────────────────────────────────────────────────
+
+function populateFromToolResult(
+  registry: Map<string, Citation>,
+  toolResult: TraceToolResult
+): void {
+  if (toolResult.status !== "success") return;
+
+  // Use pre-built evidence refs if the tool provided them
+  for (const ref of toolResult.evidenceRefs ?? []) {
+    if (ref.type === "path_hop") {
+      const d = ref.data as { pathIndex?: number; hopIndex?: number; address?: string; txHash?: string };
+      const citation: Citation = {
+        type: "path_hop",
+        id: ref.id,
+        pathIndex: d.pathIndex ?? 0,
+        hopIndex: d.hopIndex ?? 0,
+        address: d.address,
+        transactionHash: d.txHash,
+      };
+      registry.set(citation.id, citation);
+    }
+
+    if (ref.type === "sanctions_match") {
+      const d = ref.data as { matchId?: string; source?: string; entityName?: string; queryAddress?: string; screenedAt?: string };
+      if (d.matchId) {
+        const citation: Citation = {
+          type: "sanctions_match",
+          id: ref.id,
+          matchId: d.matchId,
+          source: d.source ?? "unknown",
+          entityName: d.entityName,
+          queryAddress: d.queryAddress ?? "",
+          screenedAt: d.screenedAt ?? new Date().toISOString(),
+        };
+        registry.set(citation.id, citation);
+      }
+    }
+
+    if (ref.type === "ens") {
+      const d = ref.data as { address?: string; ensName?: string };
+      if (d.address && d.ensName) {
+        const citation: Citation = {
+          type: "ens",
+          id: ref.id,
+          address: d.address,
+          ensName: d.ensName,
+          resolvedAt: ref.freshness,
+          source: ref.source,
+        };
+        registry.set(citation.id, citation);
+      }
+    }
+  }
+}
+
+// ─── Explorer URL Builder ────────────────────────────────────────────────────
+// INVARIANT: These URLs are built from chain + txHash by server code only.
+// The LLM is never trusted to generate Etherscan or other explorer URLs.
+
+const EXPLORER_URLS: Record<string, string> = {
+  ethereum: "https://etherscan.io/tx/",
+  bsc: "https://bscscan.com/tx/",
+  polygon: "https://polygonscan.com/tx/",
+  arbitrum: "https://arbiscan.io/tx/",
+  optimism: "https://optimistic.etherscan.io/tx/",
+  base: "https://basescan.org/tx/",
+};
+
+export function buildExplorerUrl(chain: string, txHash: string): string | undefined {
+  const base = EXPLORER_URLS[chain.toLowerCase()];
+  if (!base || !txHash) return undefined;
+  // Validate txHash format (64 hex chars with optional 0x prefix)
+  const cleanHash = txHash.startsWith("0x") ? txHash : `0x${txHash}`;
+  if (!/^0x[0-9a-fA-F]{64}$/.test(cleanHash)) return undefined;
+  return `${base}${cleanHash}`;
+}

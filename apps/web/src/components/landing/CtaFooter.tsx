@@ -9,8 +9,7 @@ export function CtaFooter() {
           <div className={styles.ctaBox}>
             <h2>Start investigating crypto wallet flows today</h2>
             <p>
-              Instant access for compliance officers, fraud investigators, and law enforcement
-              teams.
+              Instant access for compliance and fraud-investigation teams.
             </p>
             <div className={styles.ctaPlatforms}>
               <span className={styles.platformPill}>360+ Verified VASPs</span>

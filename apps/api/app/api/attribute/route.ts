@@ -44,7 +44,7 @@ import { isValidEthAddress } from "../../../lib/domains/core/validation";
 import { buildAttributionResponse } from "../../../lib/domains/tracing/buildAttributionResponse";
 import type { AttributionResponse } from "../../../../../packages/shared-types";
 import { requestContextStorage, logError } from "../../../lib/domains/core/logger";
-import { extractVerifiedUserId } from "../../../lib/domains/auth/verifyJwt";
+import { extractVerifiedUserIdAsync } from "../../../lib/domains/auth/verifyJwt";
 import { storeAttributionResult } from "../../../lib/domains/core/resultStore";
 import crypto from "crypto";
 
@@ -109,7 +109,7 @@ export async function GET(
       //    Extract user_id from Authorization header (Supabase JWT) —
       //    now with proper HMAC-SHA256 signature verification.
       const authHeader = request.headers.get("authorization") ?? "";
-      const userId = extractVerifiedUserId(authHeader);
+      const userId = await extractVerifiedUserIdAsync(authHeader);
 
       logLookup({
         userId,

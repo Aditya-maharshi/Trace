@@ -7,7 +7,7 @@ alter table public.cases enable row level security;
 create policy "Users can view assigned or created cases"
   on public.cases for select
   to authenticated
-  using (auth.uid() = user_id or analyst_id = auth.uid() or user_id is null);
+  using (auth.uid() = user_id or analyst_id = auth.uid() or org_id = current_setting('app.current_org_id', true));
 
 -- 2. Case History Table (Append-only audit ledger)
 alter table public.case_history enable row level security;
@@ -19,7 +19,7 @@ create policy "Users can view history for accessible cases"
     exists (
       select 1 from public.cases c
       where c.id = case_history.case_id
-        and (c.user_id = auth.uid() or c.analyst_id = auth.uid() or c.user_id is null)
+        and (c.user_id = auth.uid() or c.analyst_id = auth.uid() or c.org_id = current_setting('app.current_org_id', true))
     )
   );
 
@@ -50,7 +50,7 @@ create policy "Users can view wallets for accessible cases"
     exists (
       select 1 from public.cases c
       where c.id = case_wallets.case_id
-        and (c.user_id = auth.uid() or c.analyst_id = auth.uid() or c.user_id is null)
+        and (c.user_id = auth.uid() or c.analyst_id = auth.uid() or c.org_id = current_setting('app.current_org_id', true))
     )
   );
 
@@ -64,7 +64,7 @@ create policy "Users can view evidence for accessible cases"
     exists (
       select 1 from public.cases c
       where c.id = case_evidence.case_id
-        and (c.user_id = auth.uid() or c.analyst_id = auth.uid() or c.user_id is null)
+        and (c.user_id = auth.uid() or c.analyst_id = auth.uid() or c.org_id = current_setting('app.current_org_id', true))
     )
   );
 

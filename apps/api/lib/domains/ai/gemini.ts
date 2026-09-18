@@ -127,13 +127,16 @@ export async function generateRiskNarrative(
     : `Attribution Result: ${JSON.stringify(attributionResult)}`;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      systemInstruction: systemPrompt 
+    });
 
     const response = await model.generateContent({
       contents: [
         {
           role: "user",
-          parts: [{ text: systemPrompt + "\n\n" + userMessage }],
+          parts: [{ text: userMessage }],
         },
       ]
     });
@@ -166,11 +169,12 @@ export async function generateNarrativeWithFunctionCalling(
   tools: Array<{ name: string; description: string; handler: Function }>
 ): Promise<{ answer: string; toolsUsed?: string[] }> {
   const systemPrompt = `You are a blockchain compliance analyst with access to wallet attribution data. Answer questions using the provided function tools when you need specifics. Be concise and factual.`;
-  const promptText = `${systemPrompt}\n\nContext: ${JSON.stringify(attributionResult)}\n\nUser Question: ${userQuestion}`;
+  const promptText = `Context: ${JSON.stringify(attributionResult)}\n\nUser Question: ${userQuestion}`;
 
   try {
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-pro",
+      systemInstruction: systemPrompt,
       tools: [
         {
           functionDeclarations: tools.map((tool) => ({
@@ -281,12 +285,15 @@ ${JSON.stringify(attributionResult, null, 2)}`;
 
   let streamResult;
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      systemInstruction: systemPrompt
+    });
     streamResult = await model.generateContentStream({
       contents: [
         {
           role: "user",
-          parts: [{ text: `${systemPrompt}\n\nQuestion: ${userQuestion}` }],
+          parts: [{ text: `Question: ${userQuestion}` }],
         },
       ],
     });

@@ -58,12 +58,12 @@ export function ClassificationBadge({ details }: { details?: VaspClassificationD
   const styles = {
     onshore_registered: {
       cls: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 ring-1 ring-emerald-500/10",
-      label: "FIU-IND Registered (Onshore)",
+      label: "Registered (Onshore)",
       icon: <Building2 className="h-3.5 w-3.5" />
     },
     offshore_registered: {
       cls: "bg-blue-500/15 text-blue-400 border border-blue-500/30 ring-1 ring-blue-500/10",
-      label: "FIU-IND Registered (Offshore)",
+      label: "Registered (Offshore)",
       icon: <Globe className="h-3.5 w-3.5" />
     },
     offshore_non_compliant: {

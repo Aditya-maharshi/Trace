@@ -12,78 +12,66 @@
  *   event: error     data: { "message": "..." }
  */
 
-import { streamChatAnswer } from "../../../lib/domains/ai/gemini";
 import { NextRequest } from "next/server";
-
-function sseEvent(event: string, data: unknown): string {
-  return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-}
 
 export async function POST(req: NextRequest): Promise<Response> {
   let body: { question?: string; context?: unknown };
   try {
     body = await req.json();
   } catch {
-    return new Response(
-      sseEvent("error", { message: "Invalid JSON body" }),
-      { status: 400, headers: { "Content-Type": "text/event-stream" } },
-    );
+    return new Response(JSON.stringify({ error: "Invalid JSON body" }), { 
+      status: 400, 
+      headers: { "Content-Type": "application/json" } 
+    });
   }
 
   const { question, context } = body;
 
   if (!question || !context) {
-    return new Response(
-      sseEvent("error", { message: "Missing question or context" }),
-      { status: 400, headers: { "Content-Type": "text/event-stream" } },
-    );
+    return new Response(JSON.stringify({ error: "Missing question or context" }), { 
+      status: 400, 
+      headers: { "Content-Type": "application/json" } 
+    });
   }
 
-  const encoder = new TextEncoder();
+  try {
+    // 1. Call External Chatbot API
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      const enqueue = (data: string) => {
-        try {
-          controller.enqueue(encoder.encode(data));
-        } catch {
-          // Client disconnected
-        }
-      };
+    const apiKey = process.env.EXTERNAL_CHATBOT_API_KEY || "mock-key";
+    const externalApiUrl = "https://api.adityabot.com/v1/chat";
 
-      try {
-        for await (const chunk of streamChatAnswer(context, question)) {
-          if (chunk.type === "token") {
-            enqueue(sseEvent("token", { token: chunk.token }));
-          } else if (chunk.type === "citation") {
-            enqueue(
-              sseEvent("citation", {
-                pathIndex: chunk.pathIndex,
-                hopIndex: chunk.hopIndex,
-                address: chunk.address,
-              }),
-            );
-          }
-        }
-        enqueue(sseEvent("done", {}));
-        controller.close();
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Unknown error";
-        console.error("Chat streaming error:", err);
-        enqueue(sseEvent("error", { message }));
-        controller.close();
-      }
-    },
-  });
+    const response = await fetch(externalApiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ question, traceContext: context }),
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
 
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-      "Access-Control-Allow-Origin": req.headers.get("origin") || "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key",
-    },
-  });
+    if (response.ok) {
+      const data = await response.json();
+      return new Response(JSON.stringify({ reply: data.reply || data.answer || "No response received." }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    throw new Error(`External API failed with status ${response.status}`);
+  } catch (err) {
+    console.error("External Chatbot API error, falling back:", err);
+    // 2. Fallback rule-based behavior
+    const c = context as any;
+    const fallbackReply = `(Fallback) Regarding wallet ${c?.wallet}, the nearest VASP is ${c?.nearestVaspLabel || 'Unknown'} at ${c?.hops} hops. The risk level is ${c?.risk}. Please verify manually as the AI service is unavailable.`;
+    
+    return new Response(JSON.stringify({ reply: fallbackReply }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
 }

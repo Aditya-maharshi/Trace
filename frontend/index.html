@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trace — Automated Attribution of Unknown Crypto Wallets to Nearest VASPs</title>
+<meta name="description" content="Trace maps an unknown wallet through multi-hop on-chain flows to the nearest FIU-IND registered VASP and compiles the statutory dossier an Indian investigating officer can file.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Trace Landing CSS — theme carried over unchanged from the
+   deployed build (apps/web/src/styles.css, "Trace Landing CSS")
+   ============================================================ */
+:root{
+  --bg: #06060a;
+  --bg-raised: #0d0d15;
+  --bg-card: #101019;
+  --line: rgba(255,255,255,0.08);
+  --btc: #f7931a;
+  --eth: #8c9dfc;
+  --sol: #14f1c6;
+  --green: #2fe3a3;
+  --red: #ff5c7a;
+  --amber: #f0b429;
+  --text: #f2f2f7;
+  --text-dim: #9a9aab;
+  --text-faint: #5c5c6c;
+}
+*{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; }
+body{
+  margin:0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+.mono{ font-family: 'JetBrains Mono', monospace; }
+a{ color: inherit; text-decoration: none; }
+::selection{ background: var(--btc); color: #000; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible{ outline: 2px solid var(--btc); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+.wrap{ max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+section{ position: relative; }
+
+/* ---------- nav ---------- */
+header{
+  position: fixed; top:0; left:0; right:0; z-index: 50;
+  background: linear-gradient(to bottom, rgba(6,6,10,0.94), rgba(6,6,10,0));
+  backdrop-filter: blur(6px);
+}
+.advisory{
+  background: rgba(247,147,26,0.07);
+  border-bottom: 1px solid rgba(247,147,26,0.22);
+  font-family:'JetBrains Mono',monospace; font-size:11.5px; line-height:1.5;
+  color: #e8ba7d; padding: 7px 32px; text-align:center;
+}
+.advisory b{ color: var(--btc); font-weight:500; }
+nav{ max-width: 1180px; margin: 0 auto; padding: 18px 32px; display:flex; align-items:center; justify-content: space-between; gap: 20px; }
+.logo{ font-size: 19px; font-weight: 600; letter-spacing: -0.01em; display:flex; align-items:center; gap:8px; }
+.logo::before{ content:""; width:8px; height:8px; border-radius:50%; background: var(--btc); box-shadow: 0 0 12px 2px var(--btc); }
+.logo .sub{ font-size:11.5px; font-weight:400; color: var(--text-faint); border-left:1px solid var(--line); padding-left:9px; margin-left:2px; }
+@media (max-width: 980px){ .logo .sub{ display:none; } }
+.nav-links{ display:flex; gap:32px; font-size:14.5px; color: var(--text-dim); }
+.nav-links a:hover{ color: var(--text); }
+.nav-cta{ font-size:14px; padding:9px 18px; border:1px solid var(--line); border-radius:6px; color: var(--text); white-space:nowrap; transition: border-color .2s ease, background .2s ease; }
+.nav-cta:hover{ border-color: var(--btc); background: rgba(247,147,26,0.08); }
+@media (max-width: 860px){ .nav-links{ display:none; } }
+
+/* ---------- hero ---------- */
+.hero{
+  min-height:100vh; display:flex; align-items:center; position:relative;
+  padding: 150px 0 120px;
+  background: radial-gradient(ellipse 70% 60% at 62% 45%, rgba(247,147,26,0.08), transparent 70%),
+              radial-gradient(ellipse 60% 60% at 20% 80%, rgba(140,157,252,0.07), transparent 70%);
+}
+#hero-canvas{ position:absolute; inset:0; z-index:0; touch-action: pan-y; }
+@media (hover:hover) and (pointer:fine){ #hero-canvas{ cursor: grab; } #hero-canvas:active{ cursor: grabbing; } }
+.hero-vignette{
+  position:absolute; inset:0; z-index:1; pointer-events:none;
+  background: radial-gradient(ellipse 85% 80% at 50% 48%, rgba(6,6,10,0) 0%, rgba(6,6,10,0.55) 82%, rgba(6,6,10,0.92) 100%);
+}
+.hero-grid{
+  position:relative; z-index:2;
+  display:grid; grid-template-columns: minmax(0,1.05fr) minmax(0,0.95fr);
+  gap: 56px; align-items:center; width:100%;
+}
+@media (max-width: 1000px){ .hero-grid{ grid-template-columns: 1fr; gap: 44px; } }
+.hero-content{ max-width: 620px; }
+.eyebrow-tag{
+  display:inline-flex; align-items:center; gap:8px; font-family:'JetBrains Mono',monospace; font-size:12.5px;
+  color: var(--btc); border:1px solid rgba(247,147,26,0.32); background: rgba(247,147,26,0.07);
+  padding:6px 12px; border-radius:100px; margin-bottom:26px;
+}
+.eyebrow-tag .dot{ width:6px; height:6px; border-radius:50%; background: var(--green); animation: blink 1.6s ease-in-out infinite; }
+@keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+.hero h1{ font-size: clamp(36px, 4.9vw, 56px); line-height:1.06; letter-spacing:-0.02em; font-weight:600; margin:0 0 22px; }
+.hero .lede{ font-size:18px; line-height:1.6; color: var(--text-dim); max-width:500px; margin:0 0 18px; }
+.hero .sub{ font-size:15px; line-height:1.68; color: var(--text-faint); max-width:520px; margin:0 0 32px; }
+.hero-actions{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-bottom: 18px; }
+.btn-primary{
+  position: relative; z-index: 10;
+  background: linear-gradient(135deg, #f7931a 0%, #e07a05 100%);
+  color: #06060a; font-weight: 700; font-size: 15px; letter-spacing: -0.01em;
+  padding: 13px 26px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 4px 20px -2px rgba(247,147,26,0.45), inset 0 1px 0 rgba(255,255,255,0.35);
+  display: inline-flex; align-items: center; gap: 8px; cursor:pointer;
+  font-family:'Space Grotesk',sans-serif;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn-primary:hover{
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #ff9f1c 0%, #f7931a 100%);
+  box-shadow: 0 8px 30px rgba(247,147,26,0.65), inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.btn-ghost{
+  font-size: 14.5px; font-weight: 500; color: var(--text-dim);
+  padding: 12px 20px; border-radius: 8px;
+  background: rgba(255,255,255,0.03); border: 1px solid var(--line);
+  backdrop-filter: blur(10px); display: inline-flex; align-items: center; gap: 6px;
+  transition: color .15s ease, border-color .15s ease, background .15s ease, transform .15s ease;
+}
+.btn-ghost:hover{ color: var(--text); border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.07); transform: translateY(-1px); }
+.hero-note{ font-size:13px; color: var(--text-faint); margin:0; }
+.hero-hint{
+  position:absolute; top: 118px; right: 40px; z-index:2;
+  font-family:'JetBrains Mono',monospace; font-size:11.5px; color: var(--text-faint);
+  display:flex; align-items:center; gap:8px; pointer-events:none;
+}
+@media (hover:none), (pointer:coarse), (max-width: 1000px){ .hero-hint{ display:none; } }
+.hero-hint .ring{ width:8px; height:8px; border:1px solid var(--text-faint); border-radius:50%; }
+
+/* ---------- hero docket panel ---------- */
+.docket{
+  background: rgba(13,13,21,0.88);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+  box-shadow: 0 18px 48px -12px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.06);
+  overflow:hidden;
+}
+.docket-hd{
+  display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  padding: 13px 18px; border-bottom:1px solid var(--line);
+  font-family:'JetBrains Mono',monospace; font-size:11.5px;
+}
+.docket-hd .no{ color: var(--text-dim); letter-spacing:0.02em; }
+.docket-hd .st{ color: var(--green); }
+.chain{ padding: 20px 18px 6px; }
+.hop{ display:grid; grid-template-columns: 26px 1fr; gap:14px; padding-bottom: 20px; position:relative; }
+.hop:not(:last-child)::before{
+  content:""; position:absolute; left:12.5px; top:26px; bottom:2px; width:1px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.16), rgba(255,255,255,0.05));
+}
+.dot{
+  width:26px; height:26px; border-radius:50%; display:grid; place-items:center;
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500;
+  background: rgba(255,255,255,0.05); border:1px solid var(--line); color: var(--text-dim); z-index:1;
+}
+.dot.start{ background: rgba(255,92,122,0.14); border-color: rgba(255,92,122,0.45); color: var(--red); }
+.dot.mix{ background: rgba(240,180,41,0.14); border-color: rgba(240,180,41,0.45); color: var(--amber); }
+.dot.end{ background: rgba(47,227,163,0.14); border-color: rgba(47,227,163,0.45); color: var(--green); }
+.addr{ font-family:'JetBrains Mono',monospace; font-size:13.5px; color: var(--text); margin-bottom:5px; }
+.hop .meta{ font-size:12.5px; line-height:1.5; color: var(--text-faint); display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.tag{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; padding:2px 7px; border-radius:4px;
+  border:1px solid var(--line); color: var(--text-dim);
+}
+.tag-red{ color: var(--red); background: rgba(255,92,122,0.1); border-color: rgba(255,92,122,0.25); }
+.tag-amb{ color: var(--amber); background: rgba(240,180,41,0.1); border-color: rgba(240,180,41,0.25); }
+.tag-grn{ color: var(--green); background: rgba(47,227,163,0.1); border-color: rgba(47,227,163,0.25); }
+.docket-ft{
+  display:flex; flex-wrap:wrap; gap: 8px 22px; padding: 13px 18px;
+  border-top:1px solid var(--line); background: rgba(255,255,255,0.02);
+  font-family:'JetBrains Mono',monospace; font-size:11.5px; color: var(--text-faint);
+}
+.docket-ft b{ color: var(--text); font-weight:500; }
+
+/* ---------- hero ticker (run summary) ---------- */
+.hero-ticker{
+  position: absolute; bottom: 28px; right: max(4vw, 32px); z-index: 2;
+  display: inline-flex; align-items: center; gap: 14px;
+  background: rgba(13,13,21,0.85);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 9999px; padding: 7px 18px;
+  box-shadow: 0 8px 32px -4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08);
+  user-select: none;
+}
+@media (max-width: 1240px){ .hero-ticker{ display:none; } }
+.ticker-pill{ display:flex; align-items:center; gap:7px; padding-right:12px; border-right:1px solid rgba(255,255,255,0.1); }
+.pulse-dot{ width:7px; height:7px; border-radius:50%; background:#2fe3a3; box-shadow:0 0 10px #2fe3a3; animation: ticker-pulse 2s infinite ease-in-out; }
+@keyframes ticker-pulse{ 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.35;transform:scale(0.85);} }
+.ticker-label{ font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:600; letter-spacing:0.08em; color: var(--text-dim); text-transform: uppercase; }
+.hero-ticker .t-item{ display:flex; align-items:center; gap:8px; }
+.hero-ticker .t-item .sym{ font-size:12px; font-weight:700; color: var(--text-dim); letter-spacing:0.04em; }
+.hero-ticker .t-item .val{ font-family:'JetBrains Mono',monospace; font-variant-numeric: tabular-nums; font-size:13px; font-weight:600; color:#fff; letter-spacing:-0.01em; }
+.t-divider{ width:1px; height:14px; background: rgba(255,255,255,0.08); }
+
+/* coin info card */
+#coin-info{
+  position: absolute; z-index: 3; transform: translate(-50%, -120%);
+  background: rgba(10,10,18,0.94);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 12px;
+  padding: 14px 18px; min-width: 190px;
+  opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease;
+  box-shadow: 0 16px 36px -8px rgba(0,0,0,0.8), 0 0 24px rgba(247,147,26,0.12);
+}
+#coin-info.visible{ opacity: 1; transform: translate(-50%, -125%); }
+#coin-info .ci-header{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px; }
+#coin-info .ci-name{ font-size:14px; font-weight:600; color:#fff; }
+#coin-info .ci-sym{ font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; color: var(--text-dim); background: rgba(255,255,255,0.06); padding:1px 6px; border-radius:4px; }
+#coin-info .ci-price{ font-family:'JetBrains Mono',monospace; font-variant-numeric: tabular-nums; font-size:17px; font-weight:700; color:#fff; margin-bottom:6px; letter-spacing:-0.02em; }
+#coin-info .ci-change{ display:inline-flex; align-items:center; gap:4px; font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:600; padding:2px 7px; border-radius:5px; }
+#coin-info .ci-change.up{ color:#2fe3a3; background:rgba(47,227,163,0.12); border:1px solid rgba(47,227,163,0.25); }
+#coin-info .ci-change.down{ color:#ff5c7a; background:rgba(255,92,122,0.12); border:1px solid rgba(255,92,122,0.25); }
+
+/* ---------- section headers ---------- */
+.section-head{ max-width: 620px; margin: 0 0 56px; }
+.section-kicker{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color: var(--eth); margin:0 0 14px; }
+.section-head h2{ font-size: clamp(26px, 3.4vw, 36px); line-height:1.2; letter-spacing:-0.01em; font-weight:600; margin:0 0 16px; }
+.section-head p{ color: var(--text-dim); font-size:16px; line-height:1.65; margin:0; }
+.section-head p em{ color: var(--text); font-style: italic; }
+
+/* ---------- impact strip ---------- */
+.strip{ border-top: 1px solid var(--line); }
+.strip-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap:1px; background: var(--line); border-left:1px solid var(--line); border-right:1px solid var(--line); }
+@media (max-width: 900px){ .strip-grid{ grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 520px){ .strip-grid{ grid-template-columns: 1fr; } }
+.strip .cell{ background: var(--bg); padding: 34px 30px; }
+.strip .n{ font-family:'JetBrains Mono',monospace; font-size: clamp(24px,2.6vw,30px); font-weight:500; color: var(--btc); letter-spacing:-0.02em; margin-bottom:10px; }
+.strip .l{ font-size:14.5px; line-height:1.55; color: var(--text); margin-bottom:8px; }
+.strip .src{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color: var(--text-faint); line-height:1.5; }
+
+/* ---------- pipeline ---------- */
+.pipeline{ padding: 120px 0 110px; }
+.pipe-steps{ display:grid; grid-template-columns: repeat(5,1fr); gap:20px; }
+@media (max-width: 1080px){ .pipe-steps{ grid-template-columns: repeat(3,1fr); } }
+@media (max-width: 720px){ .pipe-steps{ grid-template-columns: 1fr; } }
+.pipe-step{ padding:26px 22px; border:1px solid var(--line); border-radius:10px; background: var(--bg-raised); transition: border-color .2s ease; }
+.pipe-step:hover{ border-color: rgba(247,147,26,0.35); }
+.pipe-step .num{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color: var(--btc); margin-bottom:18px; display:block; }
+.pipe-step h3{ font-size:17px; font-weight:600; margin:0 0 10px; }
+.pipe-step p{ font-size:14px; color: var(--text-dim); line-height:1.6; margin:0; }
+
+/* ---------- statutory grid ---------- */
+.statutory{ padding: 0 0 120px; }
+.track-grid{ display:grid; grid-template-columns: repeat(2,1fr); gap:1px; background: var(--line); border:1px solid var(--line); }
+@media (max-width: 720px){ .track-grid{ grid-template-columns: 1fr; } }
+.track-card{ background: var(--bg); padding: 34px 32px; transition: background .2s ease; }
+.track-card:hover{ background: #08080e; }
+.track-card .tag-act{ font-family:'JetBrains Mono',monospace; font-size:12px; color: var(--text-faint); display:block; margin-bottom:18px; }
+.track-card h3{ font-size:19px; font-weight:600; margin:0 0 10px; }
+.track-card p{ font-size:14.5px; line-height:1.62; color: var(--text-dim); margin:0; max-width:420px; }
+.trace-spark{ width:100%; height:34px; margin-top:22px; display:block; }
+
+/* ---------- registry table ---------- */
+.registry{ padding: 0 0 120px; }
+.table-shell{ border:1px solid var(--line); border-radius:10px; overflow:hidden; background: var(--bg-raised); }
+.table-scroll{ overflow-x: auto; }
+table{ width:100%; border-collapse: collapse; min-width: 720px; }
+thead th{
+  text-align:left; font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:500;
+  color: var(--text-faint); padding: 15px 22px; border-bottom:1px solid var(--line);
+  background: rgba(255,255,255,0.02); letter-spacing:0.02em;
+}
+tbody td{ padding: 18px 22px; font-size:14px; line-height:1.6; color: var(--text-dim); border-bottom:1px solid rgba(255,255,255,0.05); vertical-align: top; }
+tbody tr:last-child td{ border-bottom:0; }
+tbody td:first-child{ color: var(--text); font-weight:500; white-space:nowrap; }
+td.route-open{ color: var(--green); }
+td.route-block{ color: var(--amber); }
+
+/* ---------- sovereignty ---------- */
+.sovereignty{ padding: 0 0 120px; }
+.sov-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:20px; }
+@media (max-width: 820px){ .sov-grid{ grid-template-columns: 1fr; } }
+.sov-card{ padding:28px 26px; border:1px solid var(--line); border-radius:10px; background: var(--bg-card); }
+.sov-card h3{ font-size:17px; font-weight:600; margin:0 0 10px; }
+.sov-card p{ font-size:14.5px; color: var(--text-dim); line-height:1.62; margin:0; }
+
+/* ---------- cta ---------- */
+.cta-section{ padding: 20px 0 140px; }
+.cta-box{
+  padding: 60px 48px; border:1px solid var(--line); border-radius:14px;
+  background: radial-gradient(ellipse 60% 100% at 50% 0%, rgba(140,157,252,0.14), transparent), var(--bg-raised);
+  display:grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items:start;
+}
+@media (max-width: 900px){ .cta-box{ grid-template-columns: 1fr; gap:36px; padding: 44px 26px; } }
+.cta-box h2{ font-size: clamp(25px,3.2vw,34px); font-weight:600; letter-spacing:-0.01em; margin:0 0 16px; }
+.cta-box p{ color: var(--text-dim); font-size:15.5px; line-height:1.65; margin:0 0 14px; max-width: 46ch; }
+.cta-platforms{ display:flex; gap:12px; flex-wrap:wrap; margin-top: 26px; }
+.platform-pill{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color: var(--text-dim); border:1px solid var(--line); padding:8px 14px; border-radius:100px; }
+.cta-form label{ display:block; font-family:'JetBrains Mono',monospace; font-size:11.5px; color: var(--text-faint); margin: 0 0 7px; }
+.cta-form input, .cta-form select{
+  width:100%; font-family:'Space Grotesk',sans-serif; font-size:14.5px; color: var(--text);
+  background: rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px;
+  padding: 11px 14px; margin-bottom:18px; transition: border-color .2s ease, background .2s ease;
+}
+.cta-form input::placeholder{ color: var(--text-faint); }
+.cta-form input:focus, .cta-form select:focus{ border-color: rgba(247,147,26,0.5); background: rgba(255,255,255,0.05); }
+.cta-form select option{ background: var(--bg-card); color: var(--text); }
+.cta-form .btn-primary{ width:100%; justify-content:center; margin-top: 4px; }
+.cta-form .fine{ font-size:12px; color: var(--text-faint); line-height:1.55; margin: 16px 0 0; max-width:none; }
+
+/* ---------- footer ---------- */
+footer{ border-top:1px solid var(--line); padding: 40px 0; }
+.footer-row{ display:flex; align-items:center; justify-content: space-between; flex-wrap:wrap; gap:18px; }
+.footer-row .logo{ font-size:15px; }
+footer .foot-links{ display:flex; gap:26px; font-size:13.5px; color: var(--text-faint); flex-wrap:wrap; }
+footer .foot-links a:hover{ color: var(--text-dim); }
+footer .copyright{ font-size:12.5px; color: var(--text-faint); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="advisory">
+    Prototype built for <b>Smart India Hackathon 2026</b> · Problem Statement 26182 · Not an operational Government of India system
+  </div>
+  <nav>
+    <div class="logo">Trace<span class="sub">Automated VASP Attribution &amp; Blockchain Intelligence</span></div>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#statutory">Statutory output</a>
+      <a href="#sovereignty">Data sovereignty</a>
+      <a href="/dashboard">Console</a>
+    </div>
+    <a href="#brief" class="nav-cta">Request a briefing</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-vignette"></div>
+  <div class="hero-hint"><span class="ring"></span>drag to orbit · click node</div>
+  <div id="coin-info">
+    <div class="ci-header">
+      <span class="ci-name" id="ci-name">Bitcoin</span>
+      <span class="ci-sym" id="ci-sym">BTC</span>
+    </div>
+    <div class="ci-price" id="ci-price">$77,144.60</div>
+    <div class="ci-change down" id="ci-change">▼ 1.27%</div>
+  </div>
+
+  <div class="wrap hero-grid">
+    <div class="hero-content">
+      <span class="eyebrow-tag"><span class="dot"></span>SIH26182 · Blockchain Intelligence APIs</span>
+      <h1>From an unknown wallet to a served freeze notice.</h1>
+      <p class="lede">An investigating officer enters one suspect address. Trace maps the multi-hop flow, identifies the nearest regulated VASP, and returns a dossier that is ready to file.</p>
+      <p class="sub">Attribution alone stalls an investigation. Trace produces the artefacts that move it forward — a Section 63 certificate for the court record, a Section 94 summons for KYC production, and a SAHYOG payload for the freeze request.</p>
+      <div class="hero-actions">
+        <a href="#brief" class="btn-primary">Request a briefing</a>
+        <a href="#how" class="btn-ghost">See the pipeline</a>
+      </div>
+      <p class="hero-note">For agency use. Access is provisioned per unit — there is no public sign-up.</p>
+    </div>
+
+    <aside class="docket" role="img" aria-label="Sample attribution docket tracing a wallet through three hops to a registered exchange">
+      <div class="docket-hd">
+        <span class="no">DOCKET TRC-2026-004871</span>
+        <span class="st">● Attribution complete — 3 hops</span>
+      </div>
+      <div class="chain">
+        <div class="hop">
+          <div class="dot start">!</div>
+          <div>
+            <div class="addr">0x7a2f…c41d</div>
+            <div class="meta">Suspect wallet from NCRP complaint #33291<span class="tag tag-red">Reported</span></div>
+          </div>
+        </div>
+        <div class="hop">
+          <div class="dot">1</div>
+          <div>
+            <div class="addr">0x1c88…9ba2</div>
+            <div class="meta">Pass-through · ₹41.2L equivalent · 6 min later</div>
+          </div>
+        </div>
+        <div class="hop">
+          <div class="dot mix">2</div>
+          <div>
+            <div class="addr">0xd90f…77e5</div>
+            <div class="meta">Structuring detected — split across 4 outputs<span class="tag tag-amb">Layering</span></div>
+          </div>
+        </div>
+        <div class="hop">
+          <div class="dot end">✓</div>
+          <div>
+            <div class="addr">0x3f5c…f0be</div>
+            <div class="meta">Exchange deposit address<span class="tag tag-grn">FIU-IND registered</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="docket-ft">
+        <span>Taint retained <b>68.4%</b></span>
+        <span>Confidence <b>High</b></span>
+        <span>Dossier SHA-256 <b>a3f9…20c7</b></span>
+      </div>
+    </aside>
+  </div>
+
+  <div class="hero-ticker">
+    <div class="ticker-pill">
+      <span class="pulse-dot"></span>
+      <span class="ticker-label">Live run</span>
+    </div>
+    <div class="t-item"><span class="sym">TRAVERSAL</span><span class="val">3 hops</span></div>
+    <div class="t-divider"></div>
+    <div class="t-item"><span class="sym">TAINT</span><span class="val">68.4%</span></div>
+    <div class="t-divider"></div>
+    <div class="t-item"><span class="sym">ELAPSED</span><span class="val">41s</span></div>
+  </div>
+</section>
+
+<div class="strip">
+  <div class="wrap">
+    <div class="strip-grid">
+      <div class="cell">
+        <div class="n">₹22,845 cr</div>
+        <div class="l">Lost to financial cyber fraud in 2024</div>
+        <div class="src">NCRP, 36.4 lakh cases</div>
+      </div>
+      <div class="cell">
+        <div class="n">35</div>
+        <div class="l">VASPs already integrated with the SAHYOG portal</div>
+        <div class="src">Alongside 8 central and 28 state agencies</div>
+      </div>
+      <div class="cell">
+        <div class="n">Hours</div>
+        <div class="l">Typical manual traversal time per suspect wallet</div>
+        <div class="src">Block-explorer tracing, hop by hop</div>
+      </div>
+      <div class="cell">
+        <div class="n">Under 60s</div>
+        <div class="l">Trace attribution run on the same wallet</div>
+        <div class="src">Measured on our prototype, 5-hop bound</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="pipeline" id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-kicker">how it works</p>
+      <h2>The pipeline an investigating officer never has to run by hand</h2>
+      <p>Each stage is deterministic and logged. The reasoning is reproducible on demand, because a result that cannot be explained in court is not usable.</p>
+    </div>
+    <div class="pipe-steps">
+      <div class="pipe-step">
+        <span class="num mono">STAGE 01</span>
+        <h3>Ingest</h3>
+        <p>Bitcoin UTXO and account-based chains normalised into one directed multigraph.</p>
+      </div>
+      <div class="pipe-step">
+        <span class="num mono">STAGE 02</span>
+        <h3>Cluster</h3>
+        <p>Union-Find entity resolution, with CoinJoin and collaborative spends severed first to prevent false merges.</p>
+      </div>
+      <div class="pipe-step">
+        <span class="num mono">STAGE 03</span>
+        <h3>Trace</h3>
+        <p>Bounded breadth-first traversal with proportional taint carried along every path.</p>
+      </div>
+      <div class="pipe-step">
+        <span class="num mono">STAGE 04</span>
+        <h3>Attribute</h3>
+        <p>Terminal cluster matched against the VASP registry and classified by FIU-IND status.</p>
+      </div>
+      <div class="pipe-step">
+        <span class="num mono">STAGE 05</span>
+        <h3>File</h3>
+        <p>Statutory dossier generated, hashed, and pushed to SAHYOG for service.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="statutory" id="statutory">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-kicker">statutory output</p>
+      <h2>Output that is admissible, not just informative</h2>
+      <p>A graph on a screen cannot be entered into evidence. Every Trace result compiles into the instruments Indian criminal procedure actually recognises.</p>
+    </div>
+    <div class="track-grid">
+      <div class="track-card">
+        <span class="tag-act">Bharatiya Sakshya Adhiniyam, 2023</span>
+        <h3>Section 63 certificate</h3>
+        <p>Two-part statutory certificate generated with the dossier — Part A device and output particulars for the investigating officer, Part B extraction audit trail for expert sign-off, with the SHA-256 hash of the record embedded.</p>
+        <svg class="trace-spark" viewBox="0 0 300 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,24 30,24 40,10 55,26 70,8 90,8 100,18 130,18 145,4 165,20 190,20 205,6 225,14 260,14 275,22 300,10" fill="none" stroke="#f7931a" stroke-width="1.5" opacity="0.85"/></svg>
+      </div>
+      <div class="track-card">
+        <span class="tag-act">Bharatiya Nagarik Suraksha Sanhita, 2023</span>
+        <h3>Section 94 summons</h3>
+        <p>Production order pre-filled with the attributed VASP's corporate particulars and the target address, ready for signature.</p>
+        <svg class="trace-spark" viewBox="0 0 300 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,26 25,26 35,14 55,22 75,10 100,10 115,18 135,4 155,12 300,4" fill="none" stroke="#8c9dfc" stroke-width="1.5" opacity="0.85"/></svg>
+      </div>
+      <div class="track-card">
+        <span class="tag-act">Information Technology Act, 2000</span>
+        <h3>SAHYOG freeze request</h3>
+        <p>Section 79(3)(b) payload pushed to the portal over its API, routed to the correct VASP with the attribution evidence attached.</p>
+        <svg class="trace-spark" viewBox="0 0 300 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,20 40,20 50,30 60,20 80,20 90,4 100,20 130,20 145,28 165,20 300,12" fill="none" stroke="#2fe3a3" stroke-width="1.5" opacity="0.85"/></svg>
+      </div>
+      <div class="track-card">
+        <span class="tag-act">FATF Recommendation 16</span>
+        <h3>IVMS101 Travel Rule payload</h3>
+        <p>Originator, beneficiary, and VASP fields mapped to the international schema so offshore requests arrive in a format the receiving compliance system already parses.</p>
+        <svg class="trace-spark" viewBox="0 0 300 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,10 30,10 42,28 58,4 72,20 95,20 105,14 300,20" fill="none" stroke="#ff5c7a" stroke-width="1.5" opacity="0.85"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="registry">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-kicker">registry status</p>
+      <h2>Where the FIU-IND registry check changes the next step</h2>
+      <p>Attribution answers <em>which</em> entity holds the funds. Registry status answers <em>what instrument you can serve</em> — and the two are useless apart.</p>
+    </div>
+    <div class="table-shell">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Terminal VASP status</th><th>What Trace flags</th><th>Instrument available</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Onshore, FIU-IND registered</td>
+              <td class="route-open">Direct SAHYOG route open</td>
+              <td>Section 79(3)(b) notice served through the portal; expect expeditious compliance</td>
+            </tr>
+            <tr>
+              <td>Offshore, FIU-IND registered</td>
+              <td class="route-open">Registered reporting entity</td>
+              <td>Domestic obligations apply under PMLA; SAHYOG route open</td>
+            </tr>
+            <tr>
+              <td>Offshore, non-compliant</td>
+              <td class="route-block">Flagged as outside the reporting perimeter</td>
+              <td>MLAT request; IVMS101 payload prepared for the foreign counterpart</td>
+            </tr>
+            <tr>
+              <td>Bridge or mixer exit</td>
+              <td class="route-block">Marked inconclusive, never scored as clean</td>
+              <td>Cross-chain continuation queued; no notice issued on an unresolved trail</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sovereignty" id="sovereignty">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="section-kicker">data sovereignty</p>
+      <h2>Built in India, for Indian process</h2>
+      <p>Foreign analytics vendors solve the graph problem well. They do not solve the jurisdiction problem, and investigation data leaving the country is its own risk.</p>
+    </div>
+    <div class="sov-grid">
+      <div class="sov-card">
+        <h3>Data stays in India</h3>
+        <p>Investigation records, case dockets, and audit logs remain on Indian infrastructure. Deployment inside an agency's own environment is on our roadmap.</p>
+      </div>
+      <div class="sov-card">
+        <h3>Indian statutory formats</h3>
+        <p>Section 63, Section 94, and SAHYOG payloads are first-class outputs, not exports an officer reformats by hand into a local template.</p>
+      </div>
+      <div class="sov-card">
+        <h3>Reachable by smaller units</h3>
+        <p>State cyber cells and district units get the same tooling as central agencies, without an enterprise procurement cycle.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section" id="brief">
+  <div class="wrap">
+    <div class="cta-box">
+      <div>
+        <h2>Request a briefing for your unit</h2>
+        <p>We walk through a live attribution on a wallet of your choosing, show the statutory dossier it produces, and answer what the system does not yet do.</p>
+        <p>Access is provisioned per agency with its own isolated case records. Nothing is shared across units.</p>
+        <div class="cta-platforms">
+          <span class="platform-pill">Multi-hop BFS</span>
+          <span class="platform-pill">VASP Registry</span>
+          <span class="platform-pill">SAHYOG Push</span>
+          <span class="platform-pill">Section 63 Dossier</span>
+        </div>
+      </div>
+      <form class="cta-form" id="brief-form">
+        <label for="f1">Officer name</label>
+        <input id="f1" type="text" placeholder="Full name and rank">
+        <label for="f2">Agency or unit</label>
+        <input id="f2" type="text" placeholder="e.g. Cyber Crime Cell, Ahmedabad">
+        <label for="f3">Official email</label>
+        <input id="f3" type="email" placeholder="name@agency.gov.in">
+        <label for="f4">Primary interest</label>
+        <select id="f4">
+          <option>Wallet attribution and tracing</option>
+          <option>SAHYOG integration</option>
+          <option>Evidentiary dossier generation</option>
+          <option>Multi-unit deployment</option>
+        </select>
+        <button class="btn-primary" type="submit">Request a briefing</button>
+        <p class="fine">Submissions reach the project team only. This prototype holds no operational case data and is not connected to a live government system.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-row">
+    <div class="logo">Trace</div>
+    <div class="foot-links">
+      <a href="#how">How it works</a>
+      <a href="#statutory">Statutory output</a>
+      <a href="#sovereignty">Data sovereignty</a>
+      <a href="/dashboard">Console</a>
+    </div>
+    <div class="copyright">© 2026 Trace · Automated VASP Attribution · SIH 2026 Problem Statement 26182</div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('brief-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  var b = this.querySelector('.btn-primary');
+  b.textContent = 'Request sent';
+});
+</script>
+
+<!-- Hero scene: same WebGL treatment as the deployed build -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+  if (typeof THREE === 'undefined' || !THREE.OrbitControls) return;
+  var canvas = document.getElementById('hero-canvas');
+  var heroSection = canvas.parentElement;
+  var infoCard = document.getElementById('coin-info');
+  var renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  } catch (err) { return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  var scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x06060a, 0.032);
+  var camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
+  camera.position.set(1.2, 1.4, 7.2);
+
+  var isTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+  var controls = new THREE.OrbitControls(camera, canvas);
+  controls.enabled = !isTouch;
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.06;
+  controls.minDistance = 7; controls.maxDistance = 16;
+  controls.enablePan = false;
+  controls.minPolarAngle = Math.PI * 0.25;
+  controls.maxPolarAngle = Math.PI * 0.75;
+  controls.autoRotate = true; controls.autoRotateSpeed = 0.5;
+  controls.target.set(0, 0, 0);
+  var userInteracting = false;
+  controls.addEventListener('start', function(){ userInteracting = true; controls.autoRotate = false; });
+  controls.addEventListener('end', function(){
+    userInteracting = false;
+    setTimeout(function(){ if (!userInteracting) controls.autoRotate = true; }, 2200);
+  });
+
+  var key = new THREE.PointLight(0xffffff, 3.4, 40); key.position.set(5,5,6); scene.add(key);
+  var rim = new THREE.PointLight(0x8c9dfc, 2.6, 40); rim.position.set(-6,-2,-4); scene.add(rim);
+  scene.add(new THREE.AmbientLight(0x404060, 0.65));
+
+  function makeGlowTexture(color){
+    var size = 128, c = document.createElement('canvas');
+    c.width = size; c.height = size;
+    var ctx = c.getContext('2d');
+    var grad = ctx.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
+    grad.addColorStop(0, color); grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad; ctx.fillRect(0,0,size,size);
+    return new THREE.CanvasTexture(c);
+  }
+  function makeSymbolTexture(symbol, bgColor, fgColor){
+    var size = 256, c = document.createElement('canvas');
+    c.width = size; c.height = size;
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = bgColor; ctx.beginPath(); ctx.arc(size/2,size/2,size/2-6,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = fgColor; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.arc(size/2,size/2,size/2-16,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle = fgColor; ctx.font = '700 128px Space Grotesk, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(symbol, size/2, size/2 + 8);
+    var t = new THREE.CanvasTexture(c); t.needsUpdate = true; return t;
+  }
+
+  var coreGeo = new THREE.IcosahedronGeometry(0.85, 3);
+  var coreMat = new THREE.MeshStandardMaterial({ color:0x14141f, emissive:0x3a2a10, emissiveIntensity:0.9, metalness:0.5, roughness:0.35, flatShading:true });
+  var core = new THREE.Mesh(coreGeo, coreMat); scene.add(core);
+  var coreWire = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1.0, 1),
+    new THREE.MeshBasicMaterial({ color:0xf7931a, wireframe:true, transparent:true, opacity:0.35 })
+  );
+  scene.add(coreWire);
+  scene.add(new THREE.PointLight(0xf7931a, 1.6, 7));
+
+  var coinDefs = [
+    { name:'Bitcoin', symbol:'BTC', glyph:'\u20BF', price:'$77,144.60', change:'1.27%', up:false, color:'#f7931a', dark:'#1a1206', edge:'#c9740f', glow:makeGlowTexture('rgba(247,147,26,0.9)'), orbitR:2.7, speed:0.22, phase:0, scale:1.0 },
+    { name:'Ethereum', symbol:'ETH', glyph:'\u039E', price:'$2,463.58', change:'0.37%', up:false, color:'#8c9dfc', dark:'#12142b', edge:'#5f6fd6', glow:makeGlowTexture('rgba(140,157,252,0.9)'), orbitR:3.9, speed:0.15, phase:2.1, scale:0.8 },
+    { name:'Solana', symbol:'SOL', glyph:'\u25CE', price:'$99.50', change:'1.66%', up:false, color:'#14f1c6', dark:'#062420', edge:'#0fae90', glow:makeGlowTexture('rgba(20,241,198,0.9)'), orbitR:5.0, speed:0.1, phase:4.3, scale:0.62 }
+  ];
+
+  var coinObjects = [], clickableMeshes = [];
+  coinDefs.forEach(function(def){
+    var orbitGroup = new THREE.Group(); scene.add(orbitGroup);
+    var ring = new THREE.Mesh(
+      new THREE.TorusGeometry(def.orbitR, 0.006, 6, 120),
+      new THREE.MeshBasicMaterial({ color:def.color, transparent:true, opacity:0.22 })
+    );
+    ring.rotation.x = Math.PI/2; orbitGroup.add(ring);
+
+    var coinGroup = new THREE.Group();
+    var faceMat = new THREE.MeshStandardMaterial({ map: makeSymbolTexture(def.glyph, def.color, def.dark), metalness:0.55, roughness:0.3 });
+    var edgeMat = new THREE.MeshStandardMaterial({ color:def.edge, metalness:0.7, roughness:0.35 });
+    var mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.62,0.16,56), [edgeMat, faceMat, faceMat]);
+    mesh.rotation.x = Math.PI/2; mesh.scale.setScalar(def.scale); mesh.userData = def;
+    coinGroup.add(mesh); clickableMeshes.push(mesh);
+    coinGroup.position.x = def.orbitR;
+
+    var glowSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map:def.glow, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0.9 }));
+    glowSprite.scale.setScalar(2.6 * def.scale); coinGroup.add(glowSprite);
+
+    orbitGroup.add(coinGroup);
+    coinObjects.push({ def:def, orbitGroup:orbitGroup, coinGroup:coinGroup, mesh:mesh, angle:def.phase, trail:[], trailLine:null, targetScale:1, curScale:1 });
+  });
+
+  var TRAIL_LEN = 18;
+  coinObjects.forEach(function(c){
+    var positions = new Float32Array(TRAIL_LEN*3), colors = new Float32Array(TRAIL_LEN*3);
+    var base = new THREE.Color(c.def.color);
+    for (var i=0;i<TRAIL_LEN;i++){
+      var t = i/(TRAIL_LEN-1);
+      colors[i*3]=base.r*t; colors[i*3+1]=base.g*t; colors[i*3+2]=base.b*t;
+    }
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors,3));
+    var line = new THREE.Line(geo, new THREE.LineBasicMaterial({ vertexColors:true, transparent:true, opacity:0.8, blending:THREE.AdditiveBlending, depthWrite:false }));
+    scene.add(line); c.trailLine = line;
+    var wp = new THREE.Vector3(); c.coinGroup.getWorldPosition(wp);
+    for (var j=0;j<TRAIL_LEN;j++) c.trail.push(wp.clone());
+  });
+
+  var LIGHTNING_SEGMENTS = 7;
+  var lightningGroup = new THREE.Group(); scene.add(lightningGroup);
+  coinObjects.forEach(function(c){
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array((LIGHTNING_SEGMENTS+1)*3), 3));
+    var line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color:c.def.color, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false }));
+    lightningGroup.add(line); c.boltLine = line;
+  });
+  function reforgeBolts(){
+    coinObjects.forEach(function(c){
+      var start = new THREE.Vector3(0,0,0), end = new THREE.Vector3();
+      c.coinGroup.getWorldPosition(end);
+      var pos = c.boltLine.geometry.getAttribute('position').array;
+      for (var i=0;i<=LIGHTNING_SEGMENTS;i++){
+        var p = start.clone().lerp(end, i/LIGHTNING_SEGMENTS);
+        if (i>0 && i<LIGHTNING_SEGMENTS){
+          p.x += (Math.random()-0.5)*0.35; p.y += (Math.random()-0.5)*0.35; p.z += (Math.random()-0.5)*0.35;
+        }
+        pos[i*3]=p.x; pos[i*3+1]=p.y; pos[i*3+2]=p.z;
+      }
+      c.boltLine.geometry.getAttribute('position').needsUpdate = true;
+      c.boltLine.material.opacity = 0.15 + Math.random()*0.45;
+    });
+  }
+
+  var starCount = 200, starPositions = new Float32Array(starCount*3);
+  for (var s=0;s<starCount;s++){
+    starPositions[s*3] = (Math.random()-0.5)*26;
+    starPositions[s*3+1] = (Math.random()-0.5)*14;
+    starPositions[s*3+2] = (Math.random()-0.5)*26;
+  }
+  var starGeom = new THREE.BufferGeometry();
+  starGeom.setAttribute('position', new THREE.BufferAttribute(starPositions,3));
+  scene.add(new THREE.Points(starGeom, new THREE.PointsMaterial({ color:0x3a3a5a, size:0.028, transparent:true, opacity:0.55 })));
+
+  function resize(){
+    var w = heroSection.clientWidth, h = heroSection.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w/h; camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resize); resize();
+
+  var raycaster = new THREE.Raycaster(), pointerNDC = new THREE.Vector2();
+  var selected = null, hovered = null, downPos = null;
+  function ndcFromEvent(e){
+    var rect = canvas.getBoundingClientRect();
+    pointerNDC.x = ((e.clientX - rect.left)/rect.width)*2 - 1;
+    pointerNDC.y = -((e.clientY - rect.top)/rect.height)*2 + 1;
+  }
+  canvas.addEventListener('pointermove', function(e){
+    ndcFromEvent(e);
+    raycaster.setFromCamera(pointerNDC, camera);
+    var hits = raycaster.intersectObjects(clickableMeshes, false);
+    var hit = hits.length ? hits[0].object : null;
+    if (hit !== hovered){
+      hovered = hit;
+      canvas.style.cursor = hit ? 'pointer' : (isTouch ? 'default' : 'grab');
+      coinObjects.forEach(function(c){ c.targetScale = (c.mesh === hovered) ? 1.35 : 1; });
+    }
+  });
+  canvas.addEventListener('pointerdown', function(e){ downPos = { x:e.clientX, y:e.clientY }; });
+  canvas.addEventListener('pointerup', function(e){
+    if (!downPos) return;
+    var dist = Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y);
+    downPos = null;
+    if (dist > 6) return;
+    ndcFromEvent(e);
+    raycaster.setFromCamera(pointerNDC, camera);
+    var hits = raycaster.intersectObjects(clickableMeshes, false);
+    if (hits.length){
+      selected = hits[0].object;
+      var d = selected.userData;
+      document.getElementById('ci-name').textContent = d.name;
+      document.getElementById('ci-sym').textContent = d.symbol;
+      document.getElementById('ci-price').textContent = d.price;
+      var ch = document.getElementById('ci-change');
+      ch.textContent = (d.up ? '▲ +' : '▼ -') + d.change;
+      ch.className = 'ci-change ' + (d.up ? 'up' : 'down');
+      infoCard.classList.add('visible');
+    } else {
+      selected = null;
+      infoCard.classList.remove('visible');
+    }
+  });
+
+  var clock = new THREE.Clock(), boltTimer = 0, proj = new THREE.Vector3();
+  function tick(){
+    requestAnimationFrame(tick);
+    var dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+
+    core.rotation.y += dt * 0.18;
+    core.rotation.x += dt * 0.07;
+    coreWire.rotation.y -= dt * 0.12;
+    coreWire.rotation.z += dt * 0.05;
+    var pulse = 1 + Math.sin(t * 1.5) * 0.03;
+    coreWire.scale.setScalar(pulse);
+
+    coinObjects.forEach(function(c){
+      c.angle += dt * c.def.speed;
+      c.orbitGroup.rotation.y = c.angle;
+      c.coinGroup.rotation.z += dt * 0.9;
+      c.curScale += (c.targetScale - c.curScale) * 0.12;
+      c.mesh.scale.setScalar(c.def.scale * c.curScale);
+
+      var wp = new THREE.Vector3();
+      c.coinGroup.getWorldPosition(wp);
+      c.trail.push(wp.clone());
+      while (c.trail.length > TRAIL_LEN) c.trail.shift();
+      var arr = c.trailLine.geometry.getAttribute('position').array;
+      for (var i=0;i<c.trail.length;i++){
+        arr[i*3]=c.trail[i].x; arr[i*3+1]=c.trail[i].y; arr[i*3+2]=c.trail[i].z;
+      }
+      c.trailLine.geometry.getAttribute('position').needsUpdate = true;
+    });
+
+    boltTimer -= dt;
+    if (boltTimer <= 0){ reforgeBolts(); boltTimer = 0.09 + Math.random() * 0.14; }
+
+    if (selected && infoCard){
+      selected.parent.getWorldPosition(proj);
+      proj.project(camera);
+      var rect = canvas.getBoundingClientRect();
+      var x = (proj.x * 0.5 + 0.5) * rect.width;
+      var y = (-proj.y * 0.5 + 0.5) * rect.height;
+      infoCard.style.left = x + 'px';
+      infoCard.style.top = y + 'px';
+    }
+
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  tick();
+})();
+</script>
+</body>
+</html>

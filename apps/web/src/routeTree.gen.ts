@@ -11,11 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CasesRouteImport } from './routes/cases'
+import { Route as CommercialRouteImport } from './routes/commercial'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as GovernmentRouteImport } from './routes/government'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MethodologyRouteImport } from './routes/methodology'
-import { Route as SahyogRouteImport } from './routes/sahyog'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ApiPublicAttributeStreamRouteImport } from './routes/api/public/attribute-stream'
 
@@ -29,9 +30,19 @@ const CasesRoute = CasesRouteImport.update({
   path: '/cases',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommercialRoute = CommercialRouteImport.update({
+  id: '/commercial',
+  path: '/commercial',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GovernmentRoute = GovernmentRouteImport.update({
+  id: '/government',
+  path: '/government',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoryRoute = HistoryRouteImport.update({
@@ -49,11 +60,6 @@ const MethodologyRoute = MethodologyRouteImport.update({
   path: '/methodology',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SahyogRoute = SahyogRouteImport.update({
-  id: '/sahyog',
-  path: '/sahyog',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -69,22 +75,24 @@ const ApiPublicAttributeStreamRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cases': typeof CasesRoute
+  '/commercial': typeof CommercialRoute
   '/dashboard': typeof DashboardRoute
+  '/government': typeof GovernmentRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/methodology': typeof MethodologyRoute
-  '/sahyog': typeof SahyogRoute
   '/signup': typeof SignupRoute
   '/api/public/attribute-stream': typeof ApiPublicAttributeStreamRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cases': typeof CasesRoute
+  '/commercial': typeof CommercialRoute
   '/dashboard': typeof DashboardRoute
+  '/government': typeof GovernmentRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/methodology': typeof MethodologyRoute
-  '/sahyog': typeof SahyogRoute
   '/signup': typeof SignupRoute
   '/api/public/attribute-stream': typeof ApiPublicAttributeStreamRoute
 }
@@ -92,11 +100,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cases': typeof CasesRoute
+  '/commercial': typeof CommercialRoute
   '/dashboard': typeof DashboardRoute
+  '/government': typeof GovernmentRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/methodology': typeof MethodologyRoute
-  '/sahyog': typeof SahyogRoute
   '/signup': typeof SignupRoute
   '/api/public/attribute-stream': typeof ApiPublicAttributeStreamRoute
 }
@@ -105,33 +114,36 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/cases'
+    | '/commercial'
     | '/dashboard'
+    | '/government'
     | '/history'
     | '/login'
     | '/methodology'
-    | '/sahyog'
     | '/signup'
     | '/api/public/attribute-stream'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/cases'
+    | '/commercial'
     | '/dashboard'
+    | '/government'
     | '/history'
     | '/login'
     | '/methodology'
-    | '/sahyog'
     | '/signup'
     | '/api/public/attribute-stream'
   id:
     | '__root__'
     | '/'
     | '/cases'
+    | '/commercial'
     | '/dashboard'
+    | '/government'
     | '/history'
     | '/login'
     | '/methodology'
-    | '/sahyog'
     | '/signup'
     | '/api/public/attribute-stream'
   fileRoutesById: FileRoutesById
@@ -139,11 +151,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CasesRoute: typeof CasesRoute
+  CommercialRoute: typeof CommercialRoute
   DashboardRoute: typeof DashboardRoute
+  GovernmentRoute: typeof GovernmentRoute
   HistoryRoute: typeof HistoryRoute
   LoginRoute: typeof LoginRoute
   MethodologyRoute: typeof MethodologyRoute
-  SahyogRoute: typeof SahyogRoute
   SignupRoute: typeof SignupRoute
   ApiPublicAttributeStreamRoute: typeof ApiPublicAttributeStreamRoute
 }
@@ -164,11 +177,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CasesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/commercial': {
+      id: '/commercial'
+      path: '/commercial'
+      fullPath: '/commercial'
+      preLoaderRoute: typeof CommercialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/government': {
+      id: '/government'
+      path: '/government'
+      fullPath: '/government'
+      preLoaderRoute: typeof GovernmentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/history': {
@@ -192,13 +219,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MethodologyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sahyog': {
-      id: '/sahyog'
-      path: '/sahyog'
-      fullPath: '/sahyog'
-      preLoaderRoute: typeof SahyogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -219,11 +239,12 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CasesRoute: CasesRoute,
+  CommercialRoute: CommercialRoute,
   DashboardRoute: DashboardRoute,
+  GovernmentRoute: GovernmentRoute,
   HistoryRoute: HistoryRoute,
   LoginRoute: LoginRoute,
   MethodologyRoute: MethodologyRoute,
-  SahyogRoute: SahyogRoute,
   SignupRoute: SignupRoute,
   ApiPublicAttributeStreamRoute: ApiPublicAttributeStreamRoute,
 }

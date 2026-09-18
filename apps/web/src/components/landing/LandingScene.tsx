@@ -68,7 +68,7 @@ export function LandingScene({ onSelectNode, prices }: LandingSceneProps) {
     controls.enablePan = false;
     controls.minPolarAngle = Math.PI * 0.25;
     controls.maxPolarAngle = Math.PI * 0.75;
-    controls.autoRotate = true;
+    controls.autoRotate = false;
     controls.autoRotateSpeed = 0.5;
     controls.target.set(0, 0, 0);
 
@@ -425,14 +425,14 @@ export function LandingScene({ onSelectNode, prices }: LandingSceneProps) {
       const dt = Math.min((now - lastTime) / 1000, 0.1);
       lastTime = now;
 
-      // Orbit node updates
+      // Orbit node updates (static positioning)
       nodeObjects.forEach((c) => {
-        c.angle += c.def.speed * dt;
+        // c.angle += c.def.speed * dt; // Removed orbiting
         const x = Math.cos(c.angle) * c.def.orbitR;
         const z = Math.sin(c.angle) * c.def.orbitR;
-        const y = Math.sin(now * 0.002 + c.def.phase) * 0.22;
+        const y = 0; // Removed bobbing
         c.coinGroup.position.set(x, y, z);
-        c.mesh.rotation.z += 0.8 * dt;
+        // c.mesh.rotation.z += 0.8 * dt; // Removed spinning
 
         // Smooth scale interpolation
         c.curScale += (c.targetScale - c.curScale) * 0.12;

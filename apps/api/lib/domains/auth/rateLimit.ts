@@ -141,6 +141,16 @@ export async function checkRateLimit(
         const ttlMs = await redis.pttl(redisKey);
         const retryAfterSec = Math.max(1, Math.ceil((ttlMs > 0 ? ttlMs : windowMs) / 1000));
 
+        console.warn(JSON.stringify({
+          event: "security_alert",
+          type: "rate_limit_exceeded",
+          tier,
+          key,
+          count,
+          limit: maxReqs,
+          timestamp: new Date().toISOString()
+        }));
+
         return NextResponse.json(
           { error: "Too many requests. Please retry later." },
           {
@@ -157,10 +167,9 @@ export async function checkRateLimit(
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : String(err);
       console.warn(
-        `[rateLimit] Persistent KV store unreachable for key ${key} (${errorMsg}). Failing open to protect availability.`,
+        `[rateLimit] Persistent KV store unreachable for key ${key} (${errorMsg}). Falling back to in-memory store to protect availability.`,
       );
-      // Fail-open: allow request rather than breaking availability during KV outages
-      return null;
+      // Fall through to in-memory map
     }
   }
 

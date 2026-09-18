@@ -15,15 +15,14 @@ export async function GET(req: NextRequest) {
 
   const token = authHeader.replace("Bearer ", "");
   
-  // Basic validation without WebCrypto for now, or just dummy lookup if edge blocks it
-  // In a real edge runtime, we'd use crypto.subtle to hash the token and check against `api_keys`
-  const supabase = getSupabaseAdmin();
-  if (!supabase) {
-    return NextResponse.json({ error: "Internal Configuration Error" }, { status: 500 });
+  const { resolveAndValidateApiKey } = await import("../../../lib/domains/auth/authKey");
+  const authResult = await resolveAndValidateApiKey(token, "/api/mcp");
+  
+  if (authResult.error || !authResult.context) {
+    return NextResponse.json({ error: authResult.error || "Unauthorized" }, { status: authResult.status || 401 });
   }
 
-  // NOTE: For demo purposes, we inject dummy context if no DB configured. 
-  // Real implementation requires hashing the key and checking DB.
+  const apiContext = authResult.context;
   
   const transport = new SSEServerTransport("/api/mcp", req.nextUrl.origin);
   const sessionId = crypto.randomUUID();
@@ -32,8 +31,8 @@ export async function GET(req: NextRequest) {
   // Connect the server to this transport
   // Inject the extra context (tenant info) into the connection
   const context = {
-     org_id: "demo_org",
-     scopes: ["cases:read", "cases:write", "trace:read"],
+     org_id: apiContext.org_id,
+     scopes: apiContext.scopes,
      analyst_id_or_service_account: "mcp_agent"
   };
 

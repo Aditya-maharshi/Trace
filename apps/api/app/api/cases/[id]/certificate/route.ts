@@ -129,6 +129,17 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const payloadHash = computePayloadHash(stored);
 
     // 4. Log in case history
+    // Role-based check
+    const scopesHeader = req.headers.get("x-tenant-scopes");
+    if (scopesHeader) {
+      try {
+        const scopes = JSON.parse(scopesHeader);
+        if (!scopes.includes("investigator") && !scopes.includes("officer")) {
+          return NextResponse.json({ error: "Forbidden: investigator or officer role required to draft legal instruments" }, { status: 403 });
+        }
+      } catch (e) {}
+    }
+
     await admin.from("case_history").insert({
       case_id: caseId,
       from_state: null,

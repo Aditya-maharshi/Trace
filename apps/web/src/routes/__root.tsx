@@ -89,7 +89,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "Trace any crypto wallet to its nearest exchange, in seconds.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "/og-preview.png" },
+      { property: "og:url", content: "https://trace.example.com" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "/og-preview.png" },
     ],
     links: [
       {

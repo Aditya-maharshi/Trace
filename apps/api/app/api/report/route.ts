@@ -179,18 +179,11 @@ async function resolveStoredResult(req: Request): Promise<AttributionResponse | 
   return stored;
 }
 
-function renderReport(data: AttributionResponse, format: string, origin: string): NextResponse {
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key",
-  };
-
+function renderReport(data: AttributionResponse, format: string): NextResponse {
   if (format === "csv") {
     const csvString = buildCsvString(data);
     return new NextResponse(csvString, {
       headers: {
-        ...corsHeaders,
         "Content-Type": "text/csv",
         "Content-Disposition": `attachment; filename="trace_report_${data.wallet}.csv"`,
       },
@@ -201,7 +194,6 @@ function renderReport(data: AttributionResponse, format: string, origin: string)
     const jsonString = buildIvms101Json(data);
     return new NextResponse(jsonString, {
       headers: {
-        ...corsHeaders,
         "Content-Type": "application/json",
         "Content-Disposition": `attachment; filename="ivms101_${data.wallet}.json"`,
       },
@@ -211,7 +203,6 @@ function renderReport(data: AttributionResponse, format: string, origin: string)
   const stream = buildPdfStream(data);
   return new NextResponse(stream, {
     headers: {
-      ...corsHeaders,
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="trace_report_${data.wallet}.pdf"`,
     },
@@ -219,26 +210,18 @@ function renderReport(data: AttributionResponse, format: string, origin: string)
 }
 
 async function handleReport(req: Request): Promise<NextResponse> {
-  const origin = req.headers.get("origin") || "*";
-  try {
     const url = new URL(req.url);
     const format = url.searchParams.get("format") || "pdf";
     const resolved = await resolveStoredResult(req);
     if (resolved instanceof NextResponse) {
-      resolved.headers.set("Access-Control-Allow-Origin", origin);
       return resolved;
     }
-    return renderReport(resolved, format, origin);
+    return renderReport(resolved, format);
   } catch (err: any) {
     return NextResponse.json(
       { error: err.message },
       {
         status: 500,
-        headers: {
-          "Access-Control-Allow-Origin": origin,
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key",
-        },
       },
     );
   }

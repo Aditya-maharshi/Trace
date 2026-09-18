@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   const automationSecret = process.env.AUTOMATION_SECRET;
   const authHeader = req.headers.get('authorization') || '';
 
-  if (automationSecret && authHeader !== `Bearer ${automationSecret}`) {
+  if (!automationSecret || authHeader !== `Bearer ${automationSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

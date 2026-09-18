@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { extractVerifiedUserId } from '../../../../lib/domains/auth/verifyJwt';
+import { extractVerifiedUserIdAsync } from '../../../../lib/domains/auth/verifyJwt';
 import { getCaseDetails, transitionCase } from '../../../../lib/domains/cases/caseStore';
 import { withApiVersionHeaders } from '../../../../lib/domains/core/apiVersion';
 import { CaseStatus } from '@sih/shared-types';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const authHeader = req.headers.get('authorization') || '';
-  const userId = extractVerifiedUserId(authHeader);
+  const userId = await extractVerifiedUserIdAsync(authHeader);
 
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -35,13 +35,23 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const authHeader = req.headers.get('authorization') || '';
-  const userId = extractVerifiedUserId(authHeader);
+  const userId = await extractVerifiedUserIdAsync(authHeader);
 
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
+    const details = await getCaseDetails(params.id);
+    if (!details) {
+      return NextResponse.json({ error: 'Case not found' }, { status: 404 });
+    }
+    
+    // Authorization check: ensure the user has access to transition this case
+    if (details.case.user_id !== null && details.case.user_id !== userId && details.case.analyst_id !== userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await req.json();
     const { newStatus, reason, clientVersion, metadata } = body;
 

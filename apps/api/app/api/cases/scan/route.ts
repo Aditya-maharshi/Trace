@@ -2,12 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { runCaseAutomationScan } from '../../../../lib/domains/cases/caseAutomation';
 import { getSupabaseAdmin } from '../../../../lib/domains/core/auditLog';
 
+import crypto from 'crypto';
+
 export async function POST(req: NextRequest) {
   // Check for service role or automation secret to prevent unauthenticated abuse
   const automationSecret = process.env.AUTOMATION_SECRET;
   const authHeader = req.headers.get('authorization') || '';
   
-  if (automationSecret && authHeader !== `Bearer ${automationSecret}`) {
+  if (!automationSecret) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const expected = `Bearer ${automationSecret}`;
+  if (
+    authHeader.length !== expected.length ||
+    !crypto.timingSafeEqual(Buffer.from(authHeader), Buffer.from(expected))
+  ) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

@@ -5,7 +5,7 @@ import styles from "./landing.module.css";
 
 import { useCryptoPrices } from "@/hooks/use-crypto-prices";
 
-export function Hero() {
+export function CommercialHero() {
   const [selectedNode, setSelectedNode] = useState<{
     name: string;
     label: string;
@@ -30,29 +30,6 @@ export function Hero() {
 
   return (
     <>
-      <header className={styles.header}>
-        <nav className={styles.nav}>
-          <div className={styles.logo}>
-            <span className={styles.coinBadge}>
-              <span className={styles.spin}>
-                <span className={`${styles.face} ${styles.front}`}>&#8383;</span>
-                <span className={`${styles.face} ${styles.faceBack}`}>&#926;</span>
-              </span>
-            </span>
-            Trace
-          </div>
-          <div className={styles.navLinks}>
-            <a href="#track">Capabilities</a>
-            <a href="#portfolio">Trace Inspector</a>
-            <a href="#how">How it works</a>
-            <Link to="/login">Log in</Link>
-          </div>
-          <Link to="/signup" className={styles.navCta}>
-            Start tracing
-          </Link>
-        </nav>
-      </header>
-
       <section className={styles.hero}>
         <LandingScene onSelectNode={(info) => setSelectedNode(info)} prices={prices} />
         <div className={styles.heroVignette} />

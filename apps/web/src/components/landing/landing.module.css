@@ -137,6 +137,88 @@
   background: #ffffff;
 }
 
+/* Hamburger button — hidden on desktop */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+}
+
+.hLine {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.hLineOpen1 {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.hLineOpen2 {
+  opacity: 0;
+}
+
+.hLineOpen3 {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Mobile dropdown menu */
+.mobileMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: rgba(6, 6, 10, 0.98);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--line);
+  padding: 16px 24px 24px;
+}
+
+.mobileMenu a {
+  display: block;
+  font-size: 16px;
+  color: var(--text-dim);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  transition: color 0.15s ease;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.mobileMenu a:last-child {
+  border-bottom: none;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+.mobileMenu a:hover {
+  color: var(--text);
+}
+
+@media (max-width: 680px) {
+  .navLinks {
+    display: none;
+  }
+  .navCtaDesktop {
+    display: none;
+  }
+  .hamburger {
+    display: flex;
+  }
+}
+
+
 /* ---------- Hero ---------- */
 .hero {
   min-height: 100vh;

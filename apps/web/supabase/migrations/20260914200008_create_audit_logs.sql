@@ -32,4 +32,4 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "audit_logs_org_isolation" ON audit_logs
   FOR ALL
-  USING (org_id = current_setting('app.org_id', true));
+  USING (org_id = current_setting('app.current_org_id', true));

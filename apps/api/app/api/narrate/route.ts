@@ -31,29 +31,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       risk,
     });
 
-    const origin = req.headers.get("origin") || "*";
-    return NextResponse.json({ narrative }, {
-      headers: {
-        "Access-Control-Allow-Origin": origin,
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key",
-      }
-    });
+    return NextResponse.json({ narrative });
   } catch (error) {
     console.error("Narrate API error:", error);
     // Downstream AI error: provide a minimal fallback instead of breaking the UI
-    const origin = req.headers.get("origin") || "*";
     return NextResponse.json(
       {
         narrative: `Error analyzing risk.`,
       },
       { 
         status: 200,
-        headers: {
-          "Access-Control-Allow-Origin": origin,
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key",
-        }
       }
     );
   }

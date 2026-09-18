@@ -24,7 +24,7 @@ import { findNearestVASP, type BfsProgressEvent } from "../../../lib/domains/tra
 import { buildVaspSet } from "../../../lib/domains/tracing/vaspLabels";
 import { buildAttributionResponse } from "../../../lib/domains/tracing/buildAttributionResponse";
 import { requestContextStorage, logError } from "../../../lib/domains/core/logger";
-import { extractVerifiedUserId } from "../../../lib/domains/auth/verifyJwt";
+import { extractVerifiedUserIdAsync } from "../../../lib/domains/auth/verifyJwt";
 import crypto from "crypto";
 import { isValidEthAddress } from "../../../lib/domains/core/validation";
 import { logLookup } from "../../../lib/domains/core/auditLog";
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
 
           // Fire-and-forget audit log — use shared verified JWT extraction
           const authHeader = request.headers.get("authorization") ?? "";
-          const userId = extractVerifiedUserId(authHeader);
+          const userId = await extractVerifiedUserIdAsync(authHeader);
 
           logLookup({
             userId,

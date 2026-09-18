@@ -10,7 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { extractVerifiedUserId } from '../../../../../lib/domains/auth/verifyJwt';
+import { extractVerifiedUserIdAsync } from '../../../../../lib/domains/auth/verifyJwt';
 import { getCaseDetails } from '../../../../../lib/domains/cases/caseStore';
 import { withApiVersionHeaders } from '../../../../../lib/domains/core/apiVersion';
 import { getSupabaseAdmin } from '../../../../../lib/domains/core/auditLog';
@@ -53,7 +53,7 @@ function pick<T extends Record<string, any>>(obj: T, keys: readonly string[]): P
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const authHeader = req.headers.get('authorization') || '';
-  const userId = extractVerifiedUserId(authHeader);
+  const userId = await extractVerifiedUserIdAsync(authHeader);
 
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

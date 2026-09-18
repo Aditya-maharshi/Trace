@@ -129,89 +129,35 @@ export function FollowUpChat({ data, onCiteClick }: FollowUpChatProps) {
         body: JSON.stringify({ question, context: data }),
       });
 
-      if (!response.body) throw new Error("No response body");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split("\n\n");
-        buffer = parts.pop() || "";
-
-        for (const part of parts) {
-          if (!part.trim()) continue;
-          const lines = part.split("\n");
-          let eventType = "message";
-          let eventData = "";
-
-          for (const line of lines) {
-            if (line.startsWith("event: ")) eventType = line.slice(7).trim();
-            else if (line.startsWith("data: ")) eventData = line.slice(6).trim();
-          }
-
-          if (!eventData) continue;
-
-          try {
-            const parsed = JSON.parse(eventData);
-
-            if (eventType === "token") {
-              setMessages((prev) => {
-                const msgs = [...prev];
-                const last = msgs[msgs.length - 1];
-                if (last?.role === "assistant") {
-                  msgs[msgs.length - 1] = {
-                    ...last,
-                    tokens: [...(last.tokens || []), parsed.token],
-                  };
-                }
-                return msgs;
-              });
-            } else if (eventType === "citation") {
-              const citationTag = `[[CITE:${parsed.pathIndex}:${parsed.hopIndex}]]`;
-              setMessages((prev) => {
-                const msgs = [...prev];
-                const last = msgs[msgs.length - 1];
-                if (last?.role === "assistant") {
-                  msgs[msgs.length - 1] = {
-                    ...last,
-                    tokens: [...(last.tokens || []), citationTag],
-                  };
-                }
-                return msgs;
-              });
-            } else if (eventType === "done") {
-              setMessages((prev) => {
-                const msgs = [...prev];
-                const last = msgs[msgs.length - 1];
-                if (last?.role === "assistant") {
-                  msgs[msgs.length - 1] = { ...last, done: true };
-                }
-                return msgs;
-              });
-            } else if (eventType === "error") {
-              setMessages((prev) => {
-                const msgs = [...prev];
-                const last = msgs[msgs.length - 1];
-                if (last?.role === "assistant") {
-                  msgs[msgs.length - 1] = {
-                    ...last,
-                    tokens: [...(last.tokens || []), `\n\n⚠ Error: ${parsed.message}`],
-                    done: true,
-                  };
-                }
-                return msgs;
-              });
-            }
-          } catch {
-            // ignore JSON parse errors
-          }
+      if (!response.ok) {
+        let errorMsg = `Server error ${response.status}`;
+        try {
+          const errData = await response.json();
+          if (errData.error) errorMsg = errData.error;
+        } catch {
+          // fallback to status text
         }
+        throw new Error(errorMsg);
       }
+
+      const responseData = await response.json();
+      const reply = responseData.reply || "No response.";
+
+      // Simple implementation: show the complete response at once.
+      // (Could optionally add a typewriter effect here by yielding tokens in a loop)
+      setMessages((prev) => {
+        const msgs = [...prev];
+        const last = msgs[msgs.length - 1];
+        if (last?.role === "assistant") {
+          msgs[msgs.length - 1] = {
+            ...last,
+            tokens: [reply],
+            done: true,
+          };
+        }
+        return msgs;
+      });
+
     } catch (err) {
       console.error("Chat error:", err);
       setMessages((prev) => {
@@ -220,7 +166,7 @@ export function FollowUpChat({ data, onCiteClick }: FollowUpChatProps) {
         if (last?.role === "assistant") {
           msgs[msgs.length - 1] = {
             ...last,
-            tokens: [...(last.tokens || []), "\n\n*Failed to reach chat server. Check that the backend is running.*"],
+            tokens: [...(last.tokens || []), `\n\n⚠ Failed to retrieve answer: ${err instanceof Error ? err.message : String(err)}`],
             done: true,
           };
         }
@@ -242,7 +188,7 @@ export function FollowUpChat({ data, onCiteClick }: FollowUpChatProps) {
     <div className="rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-xl overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 px-6 py-4 border-b border-white/5 bg-white/[0.02]">
-        <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-emerald-400/20 to-teal-500/20 border border-emerald-500/25 flex items-center justify-center">
+        <div className="h-7 w-7 rounded-lg bg-emerald-600   border border-emerald-500/25 flex items-center justify-center">
           <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
         </div>
         <div>
@@ -261,7 +207,7 @@ export function FollowUpChat({ data, onCiteClick }: FollowUpChatProps) {
             className="flex flex-col items-center justify-center h-full gap-5 py-4"
           >
             <div className="text-center">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/20 flex items-center justify-center mx-auto mb-3">
+              <div className="h-12 w-12 rounded-2xl bg-emerald-600   border border-emerald-500/20 flex items-center justify-center mx-auto mb-3">
                 <Zap className="h-6 w-6 text-emerald-400" />
               </div>
               <p className="text-sm text-white/60 font-medium">Ask anything about this trace</p>
@@ -292,7 +238,7 @@ export function FollowUpChat({ data, onCiteClick }: FollowUpChatProps) {
               className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               {msg.role === "assistant" && (
-                <div className="h-7 w-7 shrink-0 rounded-lg bg-gradient-to-br from-emerald-400/20 to-teal-500/20 border border-emerald-500/25 flex items-center justify-center mt-0.5">
+                <div className="h-7 w-7 shrink-0 rounded-lg bg-emerald-600   border border-emerald-500/25 flex items-center justify-center mt-0.5">
                   <Bot className="h-3.5 w-3.5 text-emerald-400" />
                 </div>
               )}
@@ -327,7 +273,7 @@ export function FollowUpChat({ data, onCiteClick }: FollowUpChatProps) {
         {/* Loading dots when waiting for first token */}
         {isLoading && messages[messages.length - 1]?.tokens?.length === 0 && (
           <div className="flex gap-3 justify-start">
-            <div className="h-7 w-7 shrink-0 rounded-lg bg-gradient-to-br from-emerald-400/20 to-teal-500/20 border border-emerald-500/25 flex items-center justify-center">
+            <div className="h-7 w-7 shrink-0 rounded-lg bg-emerald-600   border border-emerald-500/25 flex items-center justify-center">
               <Bot className="h-3.5 w-3.5 text-emerald-400" />
             </div>
             <div className="flex items-center gap-1.5 px-4 py-3 rounded-2xl rounded-bl-sm bg-white/[0.04] border border-white/8">
@@ -372,7 +318,7 @@ export function FollowUpChat({ data, onCiteClick }: FollowUpChatProps) {
           <button
             onClick={() => handleSubmit(input)}
             disabled={!input.trim() || isLoading}
-            className="h-8 w-8 shrink-0 flex items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/30 active:scale-95"
+            className="h-8 w-8 shrink-0 flex items-center justify-center rounded-lg bg-emerald-600   hover: hover: disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/30 active:scale-95"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 text-white animate-spin" />

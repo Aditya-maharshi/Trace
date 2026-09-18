@@ -1,6 +1,7 @@
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { getSupabaseAdmin } from "../lib/domains/core/auditLog";
+import { withTenantTransaction } from "../lib/domains/auth/tenantContext";
 import { buildAttributionResponse } from "../lib/domains/tracing/buildAttributionResponse";
 import { findNearestVASP } from "../lib/domains/tracing/graphBuilder";
 import { buildVaspSet } from "../lib/domains/tracing/vaspLabels";
@@ -36,34 +37,35 @@ mcpServer.tool(
     }
 
     try {
-      const supabase = getSupabaseAdmin();
-      if (!supabase) throw new Error("Database not configured");
+      const result = await withTenantTransaction(org_id, async (db) => {
+        let query = db.from("cases").select("*").eq("org_id", org_id);
 
-      let query = supabase.from("cases").select("*").eq("org_id", org_id);
-
-      if (caseId) {
-        query = query.eq("id", caseId);
-      } else if (wallet) {
-        // Needs a join if doing wallet lookup, but for now just basic lookup
-        const w = await supabase.from("case_wallets").select("case_id").eq("wallet_address", wallet.toLowerCase()).limit(1);
-        if (w.data && w.data.length > 0) {
-          query = query.eq("id", w.data[0].case_id);
+        if (caseId) {
+          query = query.eq("id", caseId);
+        } else if (wallet) {
+          const w = await db.from("case_wallets").select("case_id").eq("wallet_address", wallet.toLowerCase()).limit(1);
+          if (w.data && w.data.length > 0) {
+            query = query.eq("id", w.data[0].case_id);
+          } else {
+            return { error_code: "NOT_FOUND", message: "No case found for wallet" };
+          }
         } else {
-          return { content: [{ type: "text", text: JSON.stringify({ error_code: "NOT_FOUND", message: "No case found for wallet" }) }] };
+           return { error_code: "INVALID_INPUT", message: "Must provide caseId or wallet" };
         }
-      } else {
-         return {
-            isError: true,
-            content: [{ type: "text", text: JSON.stringify({ error_code: "INVALID_INPUT", message: "Must provide caseId or wallet" }) }]
-         };
-      }
 
-      const { data, error } = await query.single();
-      if (error) {
-        if (error.code === 'PGRST116') {
-           return { content: [{ type: "text", text: JSON.stringify({ error_code: "NOT_FOUND", message: "Case not found" }) }] };
+        const { data, error } = await query.single();
+        if (error) {
+          if (error.code === 'PGRST116') {
+             return { error_code: "NOT_FOUND", message: "Case not found" };
+          }
+          throw error;
         }
-        throw error;
+
+        return data;
+      });
+
+      if (result && "error_code" in result) {
+         return { isError: true, content: [{ type: "text", text: JSON.stringify(result) }] };
       }
 
       return {

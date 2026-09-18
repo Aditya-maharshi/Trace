@@ -301,7 +301,15 @@ async function fetchAccountEndpoint<T>(
     const maxRetries = 2;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       const startMs = Date.now();
-      const res = await fetch(url.toString());
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      let res: Response;
+      try {
+        res = await fetch(url.toString(), { signal: controller.signal });
+      } finally {
+        clearTimeout(timeoutId);
+      }
       const latencyMs = Date.now() - startMs;
       logApiTrace(providerName, latencyMs, res.status, { endpoint: baseUrl });
 
@@ -431,7 +439,14 @@ export class BlockscoutProvider implements BlockchainDataProvider {
       try {
         await this.limiter.acquire();
         const url = `https://eth.blockscout.com/api/v2/addresses/${address}/transactions`;
-        const res = await fetch(url);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        let res: Response;
+        try {
+          res = await fetch(url, { signal: controller.signal });
+        } finally {
+          clearTimeout(timeoutId);
+        }
         if (res.ok) {
           const data = (await res.json()) as {
             items?: Array<Record<string, unknown>>;
@@ -485,7 +500,14 @@ export class BlockscoutProvider implements BlockchainDataProvider {
       try {
         await this.limiter.acquire();
         const url = `https://eth.blockscout.com/api/v2/addresses/${address}/token-transfers`;
-        const res = await fetch(url);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        let res: Response;
+        try {
+          res = await fetch(url, { signal: controller.signal });
+        } finally {
+          clearTimeout(timeoutId);
+        }
         if (res.ok) {
           const data = (await res.json()) as {
             items?: Array<Record<string, unknown>>;

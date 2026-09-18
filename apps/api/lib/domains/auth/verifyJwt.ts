@@ -57,16 +57,9 @@ export async function extractVerifiedUserIdAsync(authHeader: string): Promise<st
 
   const [headerB64, payloadB64, signatureB64] = parts as [string, string, string];
 
-  const jwtSecret = process.env.SUPABASE_JWT_SECRET ?? "";
-
+  const jwtSecret = process.env.SUPABASE_JWT_SECRET;
   if (!jwtSecret) {
-    // No secret configured — we cannot verify signatures.
-    console.warn(
-      "[verifyJwt] SUPABASE_JWT_SECRET is not set — JWT signature verification is DISABLED. " +
-      "Set this variable in production to prevent forged audit-trail entries."
-    );
-    // Refuse to trust an unverified token — return null (anonymous).
-    return null;
+    throw new Error("[verifyJwt] CRITICAL: SUPABASE_JWT_SECRET is not set. JWT signature verification cannot be performed securely.");
   }
 
   try {
@@ -115,47 +108,3 @@ export async function extractVerifiedUserIdAsync(authHeader: string): Promise<st
   }
 }
 
-/**
- * Synchronous wrapper for non-middleware call sites (route handlers).
- * Since we cannot await inside some call sites, this version skips signature
- * verification when the environment doesn't support async (e.g. fire-and-forget
- * audit log calls). For the middleware auth gate, use extractVerifiedUserIdAsync.
- *
- * In practice: route handlers call this for audit log attribution only (not
- * for access control). The middleware already enforces auth before reaching them.
- */
-export function extractVerifiedUserId(authHeader: string): string | null {
-  if (!authHeader.startsWith("Bearer ")) {
-    return null;
-  }
-
-  const token = authHeader.slice(7);
-  const parts = token.split(".");
-  if (parts.length !== 3) {
-    return null;
-  }
-
-  const [, payloadB64] = parts as [string, string, string];
-
-  const jwtSecret = process.env.SUPABASE_JWT_SECRET ?? "";
-
-  if (!jwtSecret) {
-    console.warn(
-      "[verifyJwt] SUPABASE_JWT_SECRET is not set — JWT signature verification is DISABLED. " +
-      "Set this variable in production to prevent forged audit-trail entries."
-    );
-    return null;
-  }
-
-  // Synchronous path: decode only (signature verified async by middleware before reaching here)
-  try {
-    const payload = JSON.parse(base64UrlDecodeToString(payloadB64));
-    if (payload.exp && typeof payload.exp === "number") {
-      const now = Math.floor(Date.now() / 1000);
-      if (now > payload.exp) return null;
-    }
-    return payload.sub ?? null;
-  } catch {
-    return null;
-  }
-}

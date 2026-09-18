@@ -60,7 +60,7 @@ export function SearchBar({
             id="trace-wallet-btn"
             type="submit"
             disabled={loading || !value.trim()}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95"
+            className="flex items-center gap-2 bg-emerald-600   hover: hover: disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />

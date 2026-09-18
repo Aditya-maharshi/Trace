@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trace — Investigation Console</title>
+<meta name="description" content="Attribution run, registry status, and statutory output for a suspect wallet.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Theme carried over unchanged from the deployed dashboard:
+   #06060a base, ambient orange/blue glow, grid overlay,
+   white/5 glass panels, Space Grotesk + JetBrains Mono.
+   ============================================================ */
+:root{
+  --bg: #06060a;
+  --bg-raised: #0d0d15;
+  --bg-card: #101019;
+  --line: rgba(255,255,255,0.08);
+  --line-soft: rgba(255,255,255,0.05);
+  --btc: #f7931a;
+  --eth: #8c9dfc;
+  --green: #2fe3a3;
+  --red: #ff5c7a;
+  --amber: #f0b429;
+  --text: #f2f2f7;
+  --text-dim: #9a9aab;
+  --text-faint: #5c5c6c;
+}
+*{ box-sizing: border-box; }
+body{
+  margin:0; min-height:100vh;
+  background: var(--bg); color: var(--text);
+  font-family:'Space Grotesk', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+a{ color: inherit; text-decoration: none; }
+::selection{ background: var(--btc); color:#000; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible{ outline: 2px solid var(--btc); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+}
+.mono{ font-family:'JetBrains Mono', monospace; }
+
+/* ---------- ambient background ---------- */
+.ambient{ position: fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.ambient .orb-a{ position:absolute; top:-25%; left:-25%; width:70vw; height:70vw; border-radius:50%; background: rgba(247,147,26,0.10); filter: blur(160px); }
+.ambient .orb-b{ position:absolute; bottom:-25%; right:-25%; width:70vw; height:70vw; border-radius:50%; background: rgba(140,157,252,0.10); filter: blur(160px); }
+.ambient .grid{
+  position:absolute; inset:0; opacity:0.035;
+  
+  background-size: 60px 60px;
+}
+
+/* ---------- advisory ---------- */
+.advisory{
+  position: relative; z-index: 30;
+  background: rgba(247,147,26,0.07); border-bottom: 1px solid rgba(247,147,26,0.22);
+  font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#e8ba7d;
+  padding: 7px 24px; text-align:center;
+}
+.advisory b{ color: var(--btc); font-weight:500; }
+
+/* ---------- topbar ---------- */
+.topbar{
+  position: relative; z-index: 20;
+  display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;
+  padding: 14px 24px; border-bottom:1px solid var(--line-soft);
+  background: rgba(0,0,0,0.2); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+}
+.brand{ display:flex; align-items:center; gap:10px; }
+.brand .dot{ width:8px; height:8px; border-radius:50%; background: var(--btc); box-shadow: 0 0 12px 2px rgba(247,147,26,0.8); }
+.brand b{ font-size:18px; font-weight:600; letter-spacing:-0.01em; }
+.brand span{ font-size:12.5px; color: var(--text-faint); border-left:1px solid var(--line); padding-left:10px; }
+.tb-right{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.agency{
+  font-family:'JetBrains Mono',monospace; font-size:11.5px; color: var(--text-dim);
+  background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+  padding: 5px 11px; border-radius: 100px;
+  display:inline-flex; align-items:center; gap:7px;
+}
+.agency::before{ content:""; width:6px; height:6px; border-radius:50%; background: var(--green); }
+.who{ text-align:right; line-height:1.3; }
+.who b{ display:block; font-size:13.5px; font-weight:500; }
+.who span{ font-size:11.5px; color: var(--text-faint); }
+
+/* ---------- shell ---------- */
+.shell{ position:relative; z-index:10; display:grid; grid-template-columns: 236px minmax(0,1fr); gap:0; align-items:start; }
+@media (max-width: 1000px){ .shell{ grid-template-columns: 1fr; } }
+aside{
+  border-right:1px solid var(--line-soft); padding: 22px 14px 60px;
+  position: sticky; top: 0; align-self: start;
+}
+@media (max-width: 1000px){ aside{ position:static; border-right:0; border-bottom:1px solid var(--line-soft); padding-bottom: 20px; } }
+aside h6{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:500; letter-spacing:0.1em;
+  color: var(--text-faint); margin: 20px 12px 8px; text-transform: uppercase;
+}
+aside h6:first-child{ margin-top:0; }
+aside a{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  font-size:14px; color: var(--text-dim); padding: 9px 12px; border-radius:8px;
+  transition: background .15s ease, color .15s ease;
+}
+aside a:hover{ background: rgba(255,255,255,0.04); color: var(--text); }
+aside a.on{ background: rgba(247,147,26,0.1); color: var(--text); box-shadow: inset 2px 0 0 var(--btc); }
+aside .ct{ font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--text-faint); }
+
+main{ padding: 26px 26px 80px; min-width:0; }
+@media (max-width: 620px){ main{ padding: 20px 16px 60px; } }
+
+/* ---------- search row ---------- */
+.searchrow{ display:flex; gap:10px; flex-wrap:wrap; }
+.searchrow input{
+  flex: 1 1 320px; min-width: 0;
+  font-family:'JetBrains Mono',monospace; font-size:13.5px; color: var(--text);
+  background: rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:10px;
+  padding: 12px 15px; transition: border-color .2s ease, background .2s ease;
+}
+.searchrow input:focus{ border-color: rgba(247,147,26,0.5); background: rgba(255,255,255,0.05); }
+.searchrow select{
+  font-family:'Space Grotesk',sans-serif; font-size:13.5px; color: var(--text);
+  background: rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:10px; padding: 12px 13px;
+}
+.searchrow select option{ background: var(--bg-card); color: var(--text); }
+.btn{
+  font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700; letter-spacing:-0.01em;
+  color:#06060a; cursor:pointer; white-space:nowrap;
+  background: linear-gradient(135deg, #f7931a 0%, #e07a05 100%);
+  border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding: 12px 22px;
+  box-shadow: 0 4px 20px -2px rgba(247,147,26,0.45), inset 0 1px 0 rgba(255,255,255,0.35);
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn:hover{ transform: translateY(-1px); background: linear-gradient(135deg,#ff9f1c 0%,#f7931a 100%); box-shadow: 0 8px 28px rgba(247,147,26,0.6), inset 0 1px 0 rgba(255,255,255,0.5); }
+.btn-line{
+  background: rgba(255,255,255,0.03); color: var(--text-dim); font-weight:500;
+  border:1px solid var(--line); box-shadow:none;
+}
+.btn-line:hover{ background: rgba(255,255,255,0.07); color: var(--text); border-color: rgba(255,255,255,0.22); box-shadow:none; }
+.btn-sm{ font-size:12.5px; padding: 7px 14px; border-radius:8px; }
+.hint{ font-size:12.5px; color: var(--text-faint); margin: 12px 2px 0; line-height:1.55; }
+
+/* ---------- verdict ---------- */
+.verdict{
+  margin-top: 22px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;
+  padding: 22px 26px; border-radius:14px;
+  border:1px solid rgba(47,227,163,0.28);
+  background: linear-gradient(135deg, rgba(47,227,163,0.09) 0%, rgba(255,255,255,0.03) 55%);
+}
+.verdict h2{ font-size: clamp(20px,2.4vw,25px); font-weight:600; letter-spacing:-0.01em; margin:0 0 8px; }
+.verdict p{ font-size:14px; line-height:1.6; color: var(--text-dim); margin:0; max-width: 70ch; }
+.verdict .addr{ font-family:'JetBrains Mono',monospace; color: var(--text); font-size:13px; }
+.vscore{ text-align:right; flex:none; }
+.vscore b{ display:block; font-size:26px; font-weight:600; color: var(--green); letter-spacing:-0.02em; }
+.vscore span{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color: var(--text-faint); }
+
+/* ---------- panels ---------- */
+.cols{ display:grid; grid-template-columns: minmax(0,1.55fr) minmax(0,1fr); gap:16px; margin-top:16px; align-items:start; }
+@media (max-width: 1080px){ .cols{ grid-template-columns: 1fr; } }
+.stack{ display:flex; flex-direction:column; gap:16px; }
+.panel{
+  background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:14px;
+  overflow:hidden; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 4px 32px rgba(0,0,0,0.3);
+}
+.panel-hd{
+  display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  padding: 15px 20px; border-bottom:1px solid var(--line-soft);
+}
+.panel-hd h3{ font-size:15px; font-weight:600; margin:0; letter-spacing:-0.01em; }
+.panel-hd .meta{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color: var(--text-faint); }
+.panel-bd{ padding: 20px; }
+.panel-bd.tight{ padding: 20px 20px 2px; }
+
+/* ---------- hop chain ---------- */
+.hop{ display:grid; grid-template-columns: 26px 1fr; gap:14px; padding-bottom:20px; position:relative; }
+.hop:not(:last-child)::before{
+  content:""; position:absolute; left:12.5px; top:26px; bottom:2px; width:1px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.16), rgba(255,255,255,0.05));
+}
+.dot{
+  width:26px; height:26px; border-radius:50%; display:grid; place-items:center;
+  font-family:'JetBrains Mono',monospace; font-size:11px;
+  background: rgba(255,255,255,0.05); border:1px solid var(--line); color: var(--text-dim); z-index:1;
+}
+.dot.start{ background: rgba(255,92,122,0.14); border-color: rgba(255,92,122,0.45); color: var(--red); }
+.dot.warn{ background: rgba(240,180,41,0.14); border-color: rgba(240,180,41,0.45); color: var(--amber); }
+.dot.end{ background: rgba(47,227,163,0.14); border-color: rgba(47,227,163,0.45); color: var(--green); }
+.addr{ font-family:'JetBrains Mono',monospace; font-size:13.5px; color: var(--text); margin-bottom:5px; }
+.hop .meta{ font-size:12.5px; line-height:1.5; color: var(--text-faint); display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.tag{ font-family:'JetBrains Mono',monospace; font-size:10.5px; padding:2px 7px; border-radius:4px; border:1px solid var(--line); color: var(--text-dim); }
+.tag-red{ color: var(--red); background: rgba(255,92,122,0.1); border-color: rgba(255,92,122,0.25); }
+.tag-amb{ color: var(--amber); background: rgba(240,180,41,0.1); border-color: rgba(240,180,41,0.25); }
+.tag-grn{ color: var(--green); background: rgba(47,227,163,0.1); border-color: rgba(47,227,163,0.25); }
+.tag-blu{ color: var(--eth); background: rgba(140,157,252,0.1); border-color: rgba(140,157,252,0.25); }
+
+.integrity{
+  display:flex; flex-wrap:wrap; gap:8px 22px; padding: 12px 20px;
+  border-top:1px solid var(--line-soft); background: rgba(255,255,255,0.02);
+  font-family:'JetBrains Mono',monospace; font-size:11.5px; color: var(--text-faint);
+}
+.integrity b{ color: var(--text-dim); font-weight:500; }
+
+/* ---------- taint bar ---------- */
+.taint{ display:flex; height:36px; border-radius:8px; overflow:hidden; border:1px solid var(--line); }
+.t-illicit{ flex: 0 0 68.4%; background: linear-gradient(90deg, rgba(255,92,122,0.85), rgba(255,92,122,0.55)); }
+.t-clean{ flex:1; background: rgba(255,255,255,0.06); }
+.taint-key{ display:flex; flex-wrap:wrap; gap: 10px 26px; margin-top:14px; font-size:13px; color: var(--text-dim); }
+.taint-key span{ display:inline-flex; align-items:center; gap:8px; }
+.taint-key b{ color: var(--text); font-weight:600; font-family:'JetBrains Mono',monospace; }
+.sw{ width:10px; height:10px; border-radius:3px; display:inline-block; }
+
+/* ---------- findings ---------- */
+.flag{ display:grid; grid-template-columns: 24px 1fr; gap:13px; padding: 13px 0; border-bottom:1px solid var(--line-soft); }
+.flag:last-child{ border-bottom:0; padding-bottom:0; }
+.flag:first-child{ padding-top:0; }
+.ic{ width:24px; height:24px; border-radius:6px; display:grid; place-items:center; font-size:12px; font-weight:600; }
+.ic-grn{ background: rgba(47,227,163,0.12); border:1px solid rgba(47,227,163,0.3); color: var(--green); }
+.ic-amb{ background: rgba(240,180,41,0.12); border:1px solid rgba(240,180,41,0.3); color: var(--amber); }
+.ic-blu{ background: rgba(140,157,252,0.12); border:1px solid rgba(140,157,252,0.3); color: var(--eth); }
+.flag .hd{ font-size:14px; line-height:1.45; margin-bottom:4px; }
+.flag .sub{ font-size:12.5px; line-height:1.55; color: var(--text-faint); }
+
+/* ---------- registry list ---------- */
+.reg{ margin:0; display:grid; grid-template-columns: auto 1fr; gap: 12px 18px; align-items:baseline; }
+.reg dt{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color: var(--text-faint); }
+.reg dd{ margin:0; font-size:13.5px; color: var(--text); text-align:right; }
+.reg dd.mono{ font-family:'JetBrains Mono',monospace; font-size:12.5px; color: var(--text-dim); }
+.reg dd.ok{ color: var(--green); }
+
+/* ---------- action rows ---------- */
+.act{
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+  padding: 13px 0; border-bottom:1px solid var(--line-soft);
+}
+.act:last-child{ border-bottom:0; padding-bottom:0; }
+.act:first-child{ padding-top:0; }
+.act .lbl{ font-size:13.5px; margin-bottom:3px; }
+.act .sub{ font-size:12px; color: var(--text-faint); line-height:1.5; }
+.done{
+  font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--green);
+  background: rgba(47,227,163,0.1); border:1px solid rgba(47,227,163,0.28);
+  padding: 5px 11px; border-radius:100px; white-space:nowrap;
+}
+
+/* ---------- case board ---------- */
+.board{ display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:14px; }
+@media (max-width: 1000px){ .board{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 600px){ .board{ grid-template-columns: 1fr; } }
+.col h5{
+  display:flex; align-items:center; justify-content:space-between;
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500; letter-spacing:0.06em;
+  color: var(--text-faint); text-transform: uppercase; margin: 0 0 12px; padding-bottom: 9px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.card{
+  background: rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:10px;
+  padding: 13px 14px; margin-bottom:10px;
+}
+.card .cno{ font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--text-faint); margin-bottom:6px; }
+.card .ttl{ font-size:13.5px; line-height:1.4; margin-bottom:10px; }
+.card .foot{ display:flex; justify-content:space-between; gap:10px; font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--text-faint); }
+.card .br{ color: var(--red); }
+.card.sla{
+  border-left:3px solid var(--amber);
+  background: linear-gradient(90deg, rgba(240,180,41,0.07) 0%, transparent 40%), rgba(255,255,255,0.04);
+}
+.card.esc{
+  border-left:3px solid var(--red);
+  background: linear-gradient(90deg, rgba(255,92,122,0.08) 0%, transparent 40%), rgba(255,255,255,0.04);
+  animation: sla-breach-pulse 2s cubic-bezier(0.4,0,0.6,1) infinite;
+}
+@keyframes sla-breach-pulse{
+  0%,100%{ box-shadow: 0 0 0 0 rgba(255,92,122,0); }
+  50%{ box-shadow: 0 0 12px 1px rgba(255,92,122,0.25); }
+}
+@media (prefers-reduced-motion: reduce){
+  .card.esc{ animation:none; box-shadow: 0 0 8px 1px rgba(255,92,122,0.2); }
+}
+</style>
+</head>
+<body>
+
+
+
+<div class="advisory">
+  Prototype · <b>SIH 2026 PS 26182</b> · Sample data, not an operational Government of India system
+</div>
+
+<div class="topbar">
+  <a class="brand" href="/">
+    <span class="dot"></span>
+    <b>Trace</b>
+    <span>Investigation Console</span>
+  </a>
+  <div class="tb-right">
+    <span class="agency">Cyber Crime Cell, Ahmedabad</span>
+    <div class="who">
+      <b>Insp. R. Parmar</b>
+      <span>Senior analyst · ID 4471</span>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+  <aside>
+    <h6>Investigation</h6>
+    <a href="#" class="on">Attribution <span class="ct">↵</span></a>
+    <a href="#">Case docket <span class="ct">14</span></a>
+    <a href="#">Watchlist <span class="ct">37</span></a>
+    <h6>Filing</h6>
+    <a href="#">SAHYOG queue <span class="ct">3</span></a>
+    <a href="#">Dossiers <span class="ct">21</span></a>
+    <a href="#">Summons drafts <span class="ct">5</span></a>
+    <h6>Unit</h6>
+    <a href="#">Audit log</a>
+    <a href="#">Analysts</a>
+    <a href="#">Methodology</a>
+  </aside>
+
+  <main>
+    <div class="searchrow">
+      <input value="0x7a2f9c4e88b1d05a3e7f26c9a8d4b0e1f3c2a41d" aria-label="Wallet address">
+      <select aria-label="Chain"><option>Ethereum</option><option>Bitcoin</option><option>Tron</option><option>BNB Chain</option></select>
+      <select aria-label="Max hops"><option>5 hops</option><option>3 hops</option><option>7 hops</option></select>
+      <button class="btn">Run attribution</button>
+    </div>
+    <p class="hint">Linked to NCRP complaint #33291 · Every run is written to the unit audit log with officer ID and timestamp.</p>
+
+    <div class="verdict">
+      <div>
+        <h2>Attributed to Binance — FIU-IND registered</h2>
+        <p>Nearest regulated VASP reached in 3 hops. Deposit address <span class="addr">0x3f5ce5fb…c936f0be</span> · Onshore reporting entity, SAHYOG route open.</p>
+      </div>
+      <div class="vscore">
+        <b>High</b>
+        <span>Confidence · score 87.3</span>
+      </div>
+    </div>
+
+    <div class="cols">
+      <!-- LEFT -->
+      <div class="stack">
+        <div class="panel">
+          <div class="panel-hd">
+            <h3>Traced path</h3>
+            <span class="meta">3 hops · 412 addresses examined · 41s</span>
+          </div>
+          <div class="panel-bd tight">
+            <div class="hop">
+              <div class="dot start">!</div>
+              <div>
+                <div class="addr">0x7a2f…c41d</div>
+                <div class="meta">Suspect wallet · NCRP #33291 · ₹58.6L received<span class="tag tag-red">Reported</span></div>
+              </div>
+            </div>
+            <div class="hop">
+              <div class="dot">1</div>
+              <div>
+                <div class="addr">0x1c88…9ba2</div>
+                <div class="meta">Pass-through · ₹41.2L forwarded · 6 min dwell</div>
+              </div>
+            </div>
+            <div class="hop">
+              <div class="dot warn">2</div>
+              <div>
+                <div class="addr">0xd90f…77e5</div>
+                <div class="meta">Split across 4 outputs below reporting threshold<span class="tag tag-amb">Structuring</span></div>
+              </div>
+            </div>
+            <div class="hop">
+              <div class="dot end">✓</div>
+              <div>
+                <div class="addr">0x3f5c…f0be</div>
+                <div class="meta">Binance deposit address<span class="tag tag-grn">FIU-IND registered</span><span class="tag tag-blu">Ground truth</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="integrity">
+            <span>Providers <b>Etherscan, Blockscout</b></span>
+            <span>Traversal <b>complete</b></span>
+            <span>Run hash <b>a3f9c1…20c7</b></span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd">
+            <h3>Taint carried to the VASP</h3>
+            <span class="meta">Haircut model, proportional</span>
+          </div>
+          <div class="panel-bd">
+            <div class="taint" role="img" aria-label="68.4 percent of funds reaching the exchange trace to the reported wallet">
+              <i class="t-illicit"></i><i class="t-clean"></i>
+            </div>
+            <div class="taint-key">
+              <span><i class="sw" style="background:#ff5c7a"></i><b>68.4%</b> traced to complaint funds</span>
+              <span><i class="sw" style="background:rgba(255,255,255,0.18)"></i><b>31.6%</b> commingled, unattributed</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><h3>Findings on this trace</h3></div>
+          <div class="panel-bd">
+            <div class="flag">
+              <span class="ic ic-grn">✓</span>
+              <div>
+                <div class="hd">No sanctions-list match on any address in the path</div>
+                <div class="sub">Screened against OFAC SDN, UN and EU consolidated lists · list version 2026-09-12</div>
+              </div>
+            </div>
+            <div class="flag">
+              <span class="ic ic-amb">▲</span>
+              <div>
+                <div class="hd">Structuring pattern at hop 2</div>
+                <div class="sub">Four outputs sized just under the ₹10L reporting threshold, within 90 seconds</div>
+              </div>
+            </div>
+            <div class="flag">
+              <span class="ic ic-blu">i</span>
+              <div>
+                <div class="hd">CoinJoin filter applied before clustering</div>
+                <div class="sub">One collaborative-spend transaction was severed to prevent a false entity merge</div>
+              </div>
+            </div>
+            <div class="flag">
+              <span class="ic ic-blu">i</span>
+              <div>
+                <div class="hd">No cross-chain bridge exit detected on this path</div>
+                <div class="sub">Funds remained on Ethereum through all three hops</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="stack">
+        <div class="panel">
+          <div class="panel-hd"><h3>Registry status</h3></div>
+          <div class="panel-bd">
+            <dl class="reg">
+              <dt>Entity</dt><dd>Binance</dd>
+              <dt>Classification</dt><dd class="ok">Onshore · FIU-IND registered</dd>
+              <dt>Registration</dt><dd class="mono">VDA-REG-0042</dd>
+              <dt>Instrument</dt><dd>Section 79(3)(b) via SAHYOG</dd>
+              <dt>Registry synced</dt><dd class="mono">2026-09-14</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd">
+            <h3>Statutory output</h3>
+            <span class="meta">Generated from this run</span>
+          </div>
+          <div class="panel-bd">
+            <div class="act">
+              <div>
+                <div class="lbl">BSA Section 63 certificate</div>
+                <div class="sub">Part A and Part B, dossier hash embedded</div>
+              </div>
+              <button class="btn btn-line btn-sm">Generate</button>
+            </div>
+            <div class="act">
+              <div>
+                <div class="lbl">BNSS Section 94 summons</div>
+                <div class="sub">KYC production order, pre-filled</div>
+              </div>
+              <button class="btn btn-line btn-sm">Draft</button>
+            </div>
+            <div class="act">
+              <div>
+                <div class="lbl">SAHYOG freeze request</div>
+                <div class="sub">Section 79(3)(b) payload to Binance</div>
+              </div>
+              <button class="btn btn-sm">Push to portal</button>
+            </div>
+            <div class="act">
+              <div>
+                <div class="lbl">IVMS101 payload</div>
+                <div class="sub">Travel Rule schema for counterpart VASP</div>
+              </div>
+              <button class="btn btn-line btn-sm">Export</button>
+            </div>
+          </div>
+          <div class="integrity">
+            <span>Each generated document is hashed and logged to the case record.</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><h3>Attach to case</h3></div>
+          <div class="panel-bd">
+            <div class="act">
+              <div>
+                <div class="lbl">CASE/2026/AHM/0412</div>
+                <div class="sub">Wallet drainer cluster · 6 linked wallets</div>
+              </div>
+              <span class="done">Pinned</span>
+            </div>
+            <div class="act">
+              <div>
+                <div class="lbl">Pin this path as evidence</div>
+                <div class="sub">Snapshot is hashed at pin time and drift-checked on export</div>
+              </div>
+              <button class="btn btn-line btn-sm">Pin</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <div class="panel-hd">
+        <h3>Case docket — Cyber Crime Cell, Ahmedabad</h3>
+        <span class="meta">14 open · 2 breaching SLA</span>
+      </div>
+      <div class="panel-bd">
+        <div class="board">
+          <div class="col">
+            <h5><span>New lead</span><span>4</span></h5>
+            <div class="card">
+              <div class="cno">CASE/2026/AHM/0418</div>
+              <div class="ttl">Unhosted wallet, ₹12.4L</div>
+              <div class="foot"><span>NCRP #33410</span><span>2h in state</span></div>
+            </div>
+            <div class="card">
+              <div class="cno">CASE/2026/AHM/0419</div>
+              <div class="ttl">P2P escrow fraud</div>
+              <div class="foot"><span>NCRP #33452</span><span>5h in state</span></div>
+            </div>
+          </div>
+          <div class="col">
+            <h5><span>Under review</span><span>6</span></h5>
+            <div class="card sla">
+              <div class="cno">CASE/2026/AHM/0412</div>
+              <div class="ttl">Wallet drainer cluster</div>
+              <div class="foot"><span>6 wallets</span><span class="br">SLA 44h</span></div>
+            </div>
+            <div class="card">
+              <div class="cno">CASE/2026/AHM/0407</div>
+              <div class="ttl">Betting syndicate payout</div>
+              <div class="foot"><span>Tron</span><span>19h in state</span></div>
+            </div>
+          </div>
+          <div class="col">
+            <h5><span>Escalated</span><span>3</span></h5>
+            <div class="card esc">
+              <div class="cno">CASE/2026/AHM/0398</div>
+              <div class="ttl">Sanctioned path detected</div>
+              <div class="foot"><span>Auto-escalated</span><span class="br">SLA 26h</span></div>
+            </div>
+            <div class="card esc">
+              <div class="cno">CASE/2026/AHM/0391</div>
+              <div class="ttl">Offshore, non-compliant VASP</div>
+              <div class="foot"><span>MLAT prepared</span><span>11h in state</span></div>
+            </div>
+          </div>
+          <div class="col">
+            <h5><span>Filed</span><span>1</span></h5>
+            <div class="card">
+              <div class="cno">CASE/2026/AHM/0377</div>
+              <div class="ttl">Freeze served, funds held</div>
+              <div class="foot"><span>SAHYOG ack</span><span>Closed</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

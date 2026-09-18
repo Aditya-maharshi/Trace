@@ -178,109 +178,7 @@ export function ResultCard({
                 <Download className="h-3.5 w-3.5" />
                 IVMS101
               </button>
-              <button
-                onClick={async () => {
-                  const caseId = prompt("Enter Case ID to generate BSA Sec 63 Certificate:");
-                  if (!caseId) return;
-                  if (!data.requestId) {
-                    alert("No request ID found for this trace. Please re-run the trace.");
-                    return;
-                  }
-                  try {
-                    const res = await fetch(`${API_BASE}/api/v1/cases/${caseId}/certificate`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ requestId: data.requestId })
-                    });
-                    if (!res.ok) {
-                      const err = await res.json();
-                      throw new Error(err.error || "Failed to generate certificate");
-                    }
-                    const blob = await res.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `bsa_sec63_cert_${data.wallet}.pdf`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                  } catch (err: any) {
-                    alert(err.message);
-                  }
-                }}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 px-3 py-1.5 text-xs font-medium text-blue-300 transition-colors border border-blue-500/30"
-              >
-                <ShieldAlert className="h-3.5 w-3.5" />
-                BSA Sec 63 Cert
-              </button>
-              {data.vaspClassification?.classification === 'onshore_registered' && (
-                <button
-                  onClick={async () => {
-                    const caseId = prompt("Enter Case ID to draft BNSS Section 94 Summons:");
-                    if (!caseId) return;
-                    if (!data.requestId) {
-                      alert("No request ID found for this trace. Please re-run the trace.");
-                      return;
-                    }
-                    try {
-                      const res = await fetch(`${API_BASE}/api/v1/cases/${caseId}/summons`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ requestId: data.requestId })
-                      });
-                      if (!res.ok) {
-                        const err = await res.json();
-                        throw new Error(err.error || "Failed to generate summons");
-                      }
-                      const blob = await res.blob();
-                      const url = window.URL.createObjectURL(blob);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = `draft_bnss94_summons_${data.wallet}.pdf`;
-                      document.body.appendChild(a);
-                      a.click();
-                      a.remove();
-                    } catch (err: any) {
-                      alert(err.message);
-                    }
-                  }}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500/20 hover:bg-orange-500/30 px-3 py-1.5 text-xs font-medium text-orange-300 transition-colors border border-orange-500/30"
-                >
-                  <ShieldAlert className="h-3.5 w-3.5" />
-                  Draft BNSS 94 Summons
-                </button>
-              )}
-              {data.vaspClassification?.classification === 'onshore_registered' && (
-                <button
-                  onClick={async () => {
-                    const caseId = prompt("Enter Case ID to prepare SAHYOG Payload:");
-                    if (!caseId) return;
-                    if (!data.requestId) {
-                      alert("No request ID found for this trace. Please re-run the trace.");
-                      return;
-                    }
-                    try {
-                      const res = await fetch(`${API_BASE}/api/v1/cases/${caseId}/sahyog`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ requestId: data.requestId })
-                      });
-                      if (!res.ok) {
-                        const err = await res.json();
-                        throw new Error(err.error || "Failed to prepare payload");
-                      }
-                      const result = await res.json();
-                      alert(`STATUS: ${result.status}\n\n${result.message}\n\nQueue ID: ${result.referenceId}`);
-                    } catch (err: any) {
-                      alert(err.message);
-                    }
-                  }}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 px-3 py-1.5 text-xs font-medium text-indigo-300 transition-colors border border-indigo-500/30"
-                >
-                  <ShieldAlert className="h-3.5 w-3.5" />
-                  Prepare SAHYOG Payload
-                </button>
-              )}
+
             </div>
           </div>
         </div>
@@ -314,22 +212,7 @@ export function ResultCard({
               </Alert>
             )}
             
-            {data.vaspClassification && (
-              <Alert className="mt-3 border-blue-500/20 bg-blue-500/8 text-blue-400">
-                <Building2 className="h-4 w-4" />
-                <AlertTitle className="text-blue-400 font-semibold text-sm">Available Legal Instruments</AlertTitle>
-                <AlertDescription className="text-blue-400/70 text-xs mt-1">
-                  Based on FIU-IND compliance status, the following instruments can be issued:
-                  <div className="mt-2 flex gap-2">
-                    {data.vaspClassification.availableInstruments.map(inst => (
-                      <span key={inst} className="inline-flex items-center px-2 py-1 rounded bg-blue-500/20 text-blue-300 font-mono text-[10px]">
-                        {inst}
-                      </span>
-                    ))}
-                  </div>
-                </AlertDescription>
-              </Alert>
-            )}
+
             {hasIncomplete && (
               <Alert className="mt-3 border-yellow-500/20 bg-yellow-500/8 text-yellow-400">
                 <AlertCircle className="h-4 w-4" />
