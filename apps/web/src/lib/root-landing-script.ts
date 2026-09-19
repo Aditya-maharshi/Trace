@@ -79,6 +79,10 @@ function initReveal(root: HTMLElement): () => void {
   return () => io.disconnect();
 }
 
+const INTRO_SEEN_KEY = "trace_intro_seen";
+const INTRO_START_TIMEOUT = 2500;
+const INTRO_MAX_DURATION = 9000;
+
 function initIntro(root: HTMLElement): () => void {
   const intro = root.querySelector<HTMLDivElement>("#intro");
   const video = root.querySelector<HTMLVideoElement>("#introVideo");
@@ -86,59 +90,72 @@ function initIntro(root: HTMLElement): () => void {
   if (!intro || !video || !skip) return () => {};
 
   const html = document.documentElement;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let alreadySeen = false;
+  try {
+    alreadySeen = sessionStorage.getItem(INTRO_SEEN_KEY) === "1";
+  } catch {
+    /* private mode — just play the intro */
+  }
+  if (reduceMotion || alreadySeen) return () => {};
+
   html.classList.add(INTRO_CLASS);
 
   let finished = false;
-  let watchdog: ReturnType<typeof setTimeout> | undefined;
-  let holdTimer: ReturnType<typeof setTimeout> | undefined;
-  let removeTimer: ReturnType<typeof setTimeout> | undefined;
+  const timers: Array<ReturnType<typeof setTimeout>> = [];
+
+  function later(fn: () => void, ms: number) {
+    timers.push(setTimeout(fn, ms));
+  }
 
   function finish() {
     if (finished) return;
     finished = true;
-    clearTimeout(watchdog);
-    clearTimeout(holdTimer);
     try {
-      video?.pause();
+      sessionStorage.setItem(INTRO_SEEN_KEY, "1");
     } catch {
-      /* the overlay is going away regardless */
+      /* the intro just replays on the next visit */
     }
+    timers.forEach(clearTimeout);
+    video?.pause();
     intro?.classList.add("leaving");
     html.classList.remove(INTRO_CLASS);
-    removeTimer = setTimeout(() => intro?.remove(), 1400);
+    later(() => intro?.classList.add("gone"), 1400);
   }
 
-  function onStarted() {
-    clearTimeout(watchdog);
-    const duration = video && isFinite(video.duration) ? video.duration : 3;
-    watchdog = setTimeout(finish, duration * 1000 + 3000);
-  }
+  // Whatever the video does — blocked autoplay, a stalled network, a codec the
+  // browser rejects — the page must never stay behind the overlay.
+  later(finish, INTRO_MAX_DURATION);
+  const startGuard = setTimeout(() => {
+    if (video.currentTime === 0 || video.paused) finish();
+  }, INTRO_START_TIMEOUT);
+  timers.push(startGuard);
 
-  const onEnded = () => {
-    holdTimer = setTimeout(finish, 500);
-  };
+  const onPlaying = () => clearTimeout(startGuard);
+  const onEnded = () => later(finish, 500);
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Escape") finish();
   };
 
+  video.addEventListener("playing", onPlaying);
   video.addEventListener("ended", onEnded);
   video.addEventListener("error", finish);
   skip.addEventListener("click", finish);
+  intro.addEventListener("click", finish);
   document.addEventListener("keydown", onKeyDown);
 
   video.muted = true;
   video.volume = 0;
   const played = video.play();
-  if (played && typeof played.then === "function") played.then(onStarted, finish);
-  else onStarted();
+  if (played && typeof played.catch === "function") played.catch(finish);
 
   return () => {
-    clearTimeout(watchdog);
-    clearTimeout(holdTimer);
-    clearTimeout(removeTimer);
+    timers.forEach(clearTimeout);
+    video.removeEventListener("playing", onPlaying);
     video.removeEventListener("ended", onEnded);
     video.removeEventListener("error", finish);
     skip.removeEventListener("click", finish);
+    intro.removeEventListener("click", finish);
     document.removeEventListener("keydown", onKeyDown);
     html.classList.remove(INTRO_CLASS);
   };
