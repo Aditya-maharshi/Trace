@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { signOutEverywhere, getGuestSession } from "@/features/auth/session";
 import { useAttributionStream } from "@/hooks/use-attribution-stream";
 import {
   API_BASE,
@@ -182,7 +183,7 @@ export function CommercialConsole({
   const { data, narrative, loading, error, progressLog, lookup } = useAttributionStream();
 
   const who = displayName(userEmail);
-  const role = localStorage.getItem("trace_guest_session") ? "Demo access" : "Compliance Officer";
+  const role = getGuestSession().isGuest ? "Demo access" : "Compliance Officer";
 
   useEffect(() => {
     if (initialPage) setPage(initialPage);
@@ -342,10 +343,8 @@ export function CommercialConsole({
           <button
             className="btn btn-line btn-sm"
             onClick={async () => {
-              localStorage.removeItem("trace_guest_session");
-              localStorage.removeItem("trace_demo_provider");
-              await supabase.auth.signOut();
-              navigate({ to: "/login", search: { switch: "true" } as never });
+              await signOutEverywhere();
+              navigate({ to: "/commercial/login", search: { switch: "true" } as never });
             }}
           >
             Sign out

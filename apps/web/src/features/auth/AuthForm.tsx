@@ -4,10 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, ShieldCheck, AlertTriangle } from "lucide-react";
 import { AuthBackground } from "./AuthBackground";
 import styles from "./auth.module.css";
+import { clearGuestSession, signOutEverywhere, setGuestSession } from "./session";
+import { resolveRedirect } from "./redirects";
+import type { TrackAuthConfig } from "./types";
 
 const STRENGTH_COLORS = ["#ff5c7a", "#f7931a", "#e8d44f", "#2fe3a3"];
 
-export function AuthForm({ mode }: { mode: "signup" | "login" }) {
+export function AuthForm({ mode, config }: { mode: "signup" | "login"; config: TrackAuthConfig }) {
   const navigate = useNavigate();
   const isSignup = mode === "signup";
   const [email, setEmail] = useState("");
@@ -36,9 +39,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
 
     // 1. If explicitly switching accounts, sign out and clear demo sessions immediately
     if (params.get("switch") === "true") {
-      localStorage.removeItem("trace_guest_session");
-      localStorage.removeItem("trace_demo_provider");
-      supabase.auth.signOut().catch(() => {});
+      signOutEverywhere().catch(() => {});
       setExistingSessionEmail(null);
       return;
     }
@@ -66,8 +67,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
     }
 
     // 3. Clear guest session if visiting login/signup so user can choose their real account
-    localStorage.removeItem("trace_guest_session");
-    localStorage.removeItem("trace_demo_provider");
+    clearGuestSession();
 
     // 4. Check for active Supabase session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -104,7 +104,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${window.location.origin}${config.dashboardPath}`,
           },
         });
         setLoading(false);
@@ -114,7 +114,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
           return;
         }
 
-        const targetUrl = params.get("redirect") || "/dashboard";
+        const targetUrl = resolveRedirect(params.get("redirect"), config.track, config.dashboardPath);
 
         if (authData.session) {
           navigate({ to: targetUrl as any });
@@ -135,7 +135,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
           return;
         }
 
-        const targetUrl = params.get("redirect") || "/dashboard";
+        const targetUrl = resolveRedirect(params.get("redirect"), config.track, config.dashboardPath);
 
         if (authData.session) {
           navigate({ to: targetUrl as any });
@@ -156,9 +156,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
     const params = new URLSearchParams(window.location.search);
 
     try {
-      const rawTarget = params.get("redirect") || "/dashboard";
-      const allowedTargets = ["/dashboard", "/government", "/commercial"];
-      const targetUrl = allowedTargets.includes(rawTarget) ? rawTarget : "/dashboard";
+      const targetUrl = resolveRedirect(params.get("redirect"), config.track, config.dashboardPath);
       
       const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -221,11 +219,15 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
     setOauthFallbackProvider(null);
     setLoading(true);
 
+    const params = new URLSearchParams(window.location.search);
+
     try {
+      const targetUrl = resolveRedirect(params.get("redirect"), config.track, config.dashboardPath);
+      
       const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "github",
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}${targetUrl}`,
           queryParams: {
             prompt: "select_account",
           },
@@ -277,23 +279,22 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
   }
 
   function handleDemoAccess() {
-    localStorage.setItem("trace_guest_session", "true");
+    setGuestSession();
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("trace-warp"));
     }
     setTimeout(() => {
-      navigate({ to: "/dashboard" });
+      navigate({ to: config.dashboardPath as any });
     }, 200);
   }
 
   function handleDemoOAuthLogin(provider: "google" | "github") {
-    localStorage.setItem("trace_guest_session", "true");
-    localStorage.setItem("trace_demo_provider", provider);
+    setGuestSession(provider);
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("trace-warp"));
     }
     setTimeout(() => {
-      navigate({ to: "/dashboard" });
+      navigate({ to: config.dashboardPath as any });
     }, 200);
   }
 
@@ -334,10 +335,11 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
         <div className={styles.authCard}>
           <h1>{isSignup ? "Create account" : "Log in"}</h1>
           <p className={styles.sub}>
-            {isSignup
+            {config.copy.subtitle || (isSignup
               ? "Start tracing crypto wallets to their nearest exchange."
-              : "Sign in to pick up where you left off."}
+              : "Sign in to pick up where you left off.")}
           </p>
+          {config.copy.note && <p className={styles.sub} style={{ marginTop: 8 }}>{config.copy.note}</p>}
 
           {existingSessionEmail && (
             <div className={`${styles.alertBox} ${styles.alertSuccess}`} style={{ marginBottom: 16 }}>
@@ -349,7 +351,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
                     type="button"
-                    onClick={() => navigate({ to: "/dashboard" })}
+                    onClick={() => navigate({ to: config.dashboardPath as any })}
                     style={{
                       flex: 1,
                       background: "#f7931a",
@@ -367,7 +369,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
                   <button
                     type="button"
                     onClick={async () => {
-                      await supabase.auth.signOut();
+                      await signOutEverywhere();
                       setExistingSessionEmail(null);
                     }}
                     style={{
@@ -420,7 +422,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
                 <span>Authentication Notice</span>
               </div>
               <div>{error}</div>
-              {oauthFallbackProvider && (
+              {config.allowDemoAccess && oauthFallbackProvider && (
                 <button
                   type="button"
                   onClick={() => handleDemoOAuthLogin(oauthFallbackProvider)}
@@ -547,21 +549,15 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
             Continue with GitHub
           </button>
 
-          <button type="button" onClick={handleDemoAccess} className={styles.demoBtn}>
-            <Sparkles style={{ width: 14, height: 14 }} />
-            Demo Analyst Access (Instant Preview)
-          </button>
+          {config.allowDemoAccess && (
+            <button type="button" onClick={handleDemoAccess} className={styles.demoBtn}>
+              <Sparkles style={{ width: 14, height: 14 }} />
+              Demo Analyst Access (Instant Preview)
+            </button>
+          )}
 
           <div className={styles.switchLine}>
-            {isSignup ? (
-              <>
-                Already tracking? <Link to="/login">Log in</Link>
-              </>
-            ) : (
-              <>
-                New here? <Link to="/signup">Sign up</Link>
-              </>
-            )}
+            {config.altPrompt.text} <Link to={config.altPrompt.to} hash={config.altPrompt.hash}>{config.altPrompt.label}</Link>
           </div>
         </div>
       </main>
