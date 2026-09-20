@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { LandingScene } from "./LandingScene";
 import styles from "./landing.module.css";
 
-import { useCryptoPrices } from "@/hooks/use-crypto-prices";
+import { useCryptoPrices } from "@/features/commercial/hooks/use-crypto-prices";
 
 export function CommercialHero() {
   const [selectedNode, setSelectedNode] = useState<{

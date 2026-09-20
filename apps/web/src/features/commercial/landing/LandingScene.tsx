@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-import type { CryptoPriceData } from "@/hooks/use-crypto-prices";
+import type { CryptoPriceData } from "@/features/commercial/hooks/use-crypto-prices";
 
 interface LandingSceneProps {
   onSelectNode?: (info: { name: string; label: string; score: string }) => void;

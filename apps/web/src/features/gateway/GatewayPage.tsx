@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import "@/styles/trace-landing.css";
+import "./trace-landing.css";
 
 const INTRO_SRC = "/intro.mp4";
 

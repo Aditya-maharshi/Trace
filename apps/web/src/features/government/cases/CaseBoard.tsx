@@ -30,8 +30,8 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core';
 import { toast } from 'sonner';
 import { AnimatePresence, motion } from 'motion/react';
-import type { Case, CaseStatus } from '../../../../../packages/shared-types';
-import { isValidTransition, transitionError } from '../../../../../packages/shared-types';
+import type { Case, CaseStatus } from '../../../../../../packages/shared-types';
+import { isValidTransition, transitionError } from '../../../../../../packages/shared-types';
 import { CaseCard } from './CaseCard';
 import { API_BASE } from '@/lib/api';
 import { supabase } from '@/integrations/supabase/client';

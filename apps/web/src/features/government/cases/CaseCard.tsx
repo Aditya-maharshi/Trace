@@ -13,7 +13,7 @@
 import { useMemo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import type { Case } from '../../../../../packages/shared-types';
+import type { Case } from '../../../../../../packages/shared-types';
 import { Clock, AlertTriangle, Shield, Wallet, ChevronRight } from 'lucide-react';
 
 interface CaseCardProps {

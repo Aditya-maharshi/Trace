@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { CaseBoard } from "@/components/cases/CaseBoard";
+import { CaseBoard } from "@/features/government/cases/CaseBoard";
 import { Toaster } from "sonner";
 import { History, LogOut, LayoutDashboard, Shield } from "lucide-react";
 

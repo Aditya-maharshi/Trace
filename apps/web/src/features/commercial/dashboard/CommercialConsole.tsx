@@ -11,9 +11,9 @@ import {
   type AttributionResponse,
 } from "@/lib/api";
 import { ETH_ADDRESS_RE, truncateAddress } from "@/lib/types";
-import { AttributionGraph } from "@/components/dashboard/AttributionGraph";
-import { BfsProgressFeed } from "@/components/dashboard/BfsProgressFeed";
-import "@/styles/trace-console.css";
+import { AttributionGraph } from "./components/AttributionGraph";
+import { BfsProgressFeed } from "./components/BfsProgressFeed";
+import "./trace-console.css";
 
 type PageId = "overview" | "screen" | "batch" | "alerts" | "history" | "api" | "team";
 

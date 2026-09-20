@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getConfig } from "@/lib/api";
-import { CommercialConsole } from "@/components/console/CommercialConsole";
+import { CommercialConsole } from "@/features/commercial/dashboard/CommercialConsole";
 
 const CONSOLE_TABS = ["overview", "screen", "batch", "alerts", "history", "api", "team"] as const;
 type ConsoleTab = (typeof CONSOLE_TABS)[number];
