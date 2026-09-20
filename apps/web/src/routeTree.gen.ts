@@ -12,12 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CasesRouteImport } from './routes/cases'
 import { Route as CommercialRouteImport } from './routes/commercial'
-import { Route as GovernmentRouteImport } from './routes/government'
 import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as CommercialIndexRouteImport } from './routes/commercial/index'
 import { Route as CommercialDashboardRouteImport } from './routes/commercial/dashboard'
 import { Route as CommercialLoginRouteImport } from './routes/commercial/login'
 import { Route as CommercialSignupRouteImport } from './routes/commercial/signup'
+import { Route as GovernmentIndexRouteImport } from './routes/government/index'
+import { Route as GovernmentDashboardRouteImport } from './routes/government/dashboard'
 import { Route as ApiPublicAttributeStreamRouteImport } from './routes/api/public/attribute-stream'
 
 const IndexRoute = IndexRouteImport.update({
@@ -33,11 +34,6 @@ const CasesRoute = CasesRouteImport.update({
 const CommercialRoute = CommercialRouteImport.update({
   id: '/commercial',
   path: '/commercial',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GovernmentRoute = GovernmentRouteImport.update({
-  id: '/government',
-  path: '/government',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MethodologyRoute = MethodologyRouteImport.update({
@@ -65,6 +61,16 @@ const CommercialSignupRoute = CommercialSignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => CommercialRoute,
 } as any)
+const GovernmentIndexRoute = GovernmentIndexRouteImport.update({
+  id: '/government/',
+  path: '/government/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GovernmentDashboardRoute = GovernmentDashboardRouteImport.update({
+  id: '/government/dashboard',
+  path: '/government/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAttributeStreamRoute =
   ApiPublicAttributeStreamRouteImport.update({
     id: '/api/public/attribute-stream',
@@ -76,23 +82,25 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cases': typeof CasesRoute
   '/commercial': typeof CommercialRouteWithChildren
-  '/government': typeof GovernmentRoute
   '/methodology': typeof MethodologyRoute
   '/commercial/dashboard': typeof CommercialDashboardRoute
   '/commercial/login': typeof CommercialLoginRoute
   '/commercial/signup': typeof CommercialSignupRoute
+  '/government/dashboard': typeof GovernmentDashboardRoute
   '/commercial/': typeof CommercialIndexRoute
+  '/government/': typeof GovernmentIndexRoute
   '/api/public/attribute-stream': typeof ApiPublicAttributeStreamRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cases': typeof CasesRoute
-  '/government': typeof GovernmentRoute
   '/methodology': typeof MethodologyRoute
   '/commercial/dashboard': typeof CommercialDashboardRoute
   '/commercial/login': typeof CommercialLoginRoute
   '/commercial/signup': typeof CommercialSignupRoute
+  '/government/dashboard': typeof GovernmentDashboardRoute
   '/commercial': typeof CommercialIndexRoute
+  '/government': typeof GovernmentIndexRoute
   '/api/public/attribute-stream': typeof ApiPublicAttributeStreamRoute
 }
 export interface FileRoutesById {
@@ -100,12 +108,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/cases': typeof CasesRoute
   '/commercial': typeof CommercialRouteWithChildren
-  '/government': typeof GovernmentRoute
   '/methodology': typeof MethodologyRoute
   '/commercial/dashboard': typeof CommercialDashboardRoute
   '/commercial/login': typeof CommercialLoginRoute
   '/commercial/signup': typeof CommercialSignupRoute
+  '/government/dashboard': typeof GovernmentDashboardRoute
   '/commercial/': typeof CommercialIndexRoute
+  '/government/': typeof GovernmentIndexRoute
   '/api/public/attribute-stream': typeof ApiPublicAttributeStreamRoute
 }
 export interface FileRouteTypes {
@@ -114,35 +123,38 @@ export interface FileRouteTypes {
     | '/'
     | '/cases'
     | '/commercial'
-    | '/government'
     | '/methodology'
     | '/commercial/dashboard'
     | '/commercial/login'
     | '/commercial/signup'
+    | '/government/dashboard'
     | '/commercial/'
+    | '/government/'
     | '/api/public/attribute-stream'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/cases'
-    | '/government'
     | '/methodology'
     | '/commercial/dashboard'
     | '/commercial/login'
     | '/commercial/signup'
+    | '/government/dashboard'
     | '/commercial'
+    | '/government'
     | '/api/public/attribute-stream'
   id:
     | '__root__'
     | '/'
     | '/cases'
     | '/commercial'
-    | '/government'
     | '/methodology'
     | '/commercial/dashboard'
     | '/commercial/login'
     | '/commercial/signup'
+    | '/government/dashboard'
     | '/commercial/'
+    | '/government/'
     | '/api/public/attribute-stream'
   fileRoutesById: FileRoutesById
 }
@@ -150,8 +162,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CasesRoute: typeof CasesRoute
   CommercialRoute: typeof CommercialRouteWithChildren
-  GovernmentRoute: typeof GovernmentRoute
   MethodologyRoute: typeof MethodologyRoute
+  GovernmentDashboardRoute: typeof GovernmentDashboardRoute
+  GovernmentIndexRoute: typeof GovernmentIndexRoute
   ApiPublicAttributeStreamRoute: typeof ApiPublicAttributeStreamRoute
 }
 
@@ -176,13 +189,6 @@ declare module '@tanstack/react-router' {
       path: '/commercial'
       fullPath: '/commercial'
       preLoaderRoute: typeof CommercialRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/government': {
-      id: '/government'
-      path: '/government'
-      fullPath: '/government'
-      preLoaderRoute: typeof GovernmentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/methodology': {
@@ -220,6 +226,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommercialSignupRouteImport
       parentRoute: typeof CommercialRoute
     }
+    '/government/': {
+      id: '/government/'
+      path: '/government'
+      fullPath: '/government/'
+      preLoaderRoute: typeof GovernmentIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/government/dashboard': {
+      id: '/government/dashboard'
+      path: '/government/dashboard'
+      fullPath: '/government/dashboard'
+      preLoaderRoute: typeof GovernmentDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/attribute-stream': {
       id: '/api/public/attribute-stream'
       path: '/api/public/attribute-stream'
@@ -252,8 +272,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CasesRoute: CasesRoute,
   CommercialRoute: CommercialRouteWithChildren,
-  GovernmentRoute: GovernmentRoute,
   MethodologyRoute: MethodologyRoute,
+  GovernmentDashboardRoute: GovernmentDashboardRoute,
+  GovernmentIndexRoute: GovernmentIndexRoute,
   ApiPublicAttributeStreamRoute: ApiPublicAttributeStreamRoute,
 }
 export const routeTree = rootRouteImport

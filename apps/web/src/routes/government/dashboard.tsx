@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ShieldAlert, RefreshCw, LogOut } from "lucide-react";
 import { API_BASE } from "@/lib/api";
 
-export const Route = createFileRoute("/government")({
+export const Route = createFileRoute("/government/dashboard")({
   head: () => ({
     meta: [
       { title: "Trace — Government Portal" },
