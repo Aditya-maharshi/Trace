@@ -17,7 +17,7 @@ export function GovernmentDashboardPage() {
 </div>
 
 <div className="topbar">
-  <a className="brand" href="/">
+  <a className="brand" href="/government">
     <span className="dot"></span>
     <b>Trace</b>
     <span>Investigation Console</span>

@@ -18,21 +18,20 @@
   --text-dim: #9a9aab;
   --text-faint: #5c5c6c;
 }
-*{ box-sizing: border-box; }
-body{
-  margin:0; min-height:100vh;
+.gov-dashboard-root{
+  min-height: 100vh;
   background: var(--bg); color: var(--text);
   font-family:'Space Grotesk', sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
-a{ color: inherit; text-decoration: none; }
-::selection{ background: var(--btc); color:#000; }
-a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible{ outline: 2px solid var(--btc); outline-offset: 2px; }
+.gov-dashboard-root *, .gov-dashboard-root *::before, .gov-dashboard-root *::after{ box-sizing: border-box; }
+.gov-dashboard-root a{ color: inherit; text-decoration: none; }
+.gov-dashboard-root a:focus-visible, .gov-dashboard-root button:focus-visible, .gov-dashboard-root input:focus-visible, .gov-dashboard-root select:focus-visible{ outline: 2px solid var(--btc); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce){
-  *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+  .gov-dashboard-root *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
 }
-.mono{ font-family:'JetBrains Mono', monospace; }
+.gov-dashboard-root .mono{ font-family:'JetBrains Mono', monospace; }
 
 /* ---------- ambient background ---------- */
 .ambient{ position: fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
@@ -80,27 +79,27 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 /* ---------- shell ---------- */
 .shell{ position:relative; z-index:10; display:grid; grid-template-columns: 236px minmax(0,1fr); gap:0; align-items:start; }
 @media (max-width: 1000px){ .shell{ grid-template-columns: 1fr; } }
-aside{
+.gov-dashboard-root aside{
   border-right:1px solid var(--line-soft); padding: 22px 14px 60px;
   position: sticky; top: 0; align-self: start;
 }
-@media (max-width: 1000px){ aside{ position:static; border-right:0; border-bottom:1px solid var(--line-soft); padding-bottom: 20px; } }
-aside h6{
+@media (max-width: 1000px){ .gov-dashboard-root aside{ position:static; border-right:0; border-bottom:1px solid var(--line-soft); padding-bottom: 20px; } }
+.gov-dashboard-root aside h6{
   font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:500; letter-spacing:0.1em;
   color: var(--text-faint); margin: 20px 12px 8px; text-transform: uppercase;
 }
-aside h6:first-child{ margin-top:0; }
-aside a{
+.gov-dashboard-root aside h6:first-child{ margin-top:0; }
+.gov-dashboard-root aside a{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   font-size:14px; color: var(--text-dim); padding: 9px 12px; border-radius:8px;
   transition: background .15s ease, color .15s ease;
 }
-aside a:hover{ background: rgba(255,255,255,0.04); color: var(--text); }
-aside a.on{ background: rgba(247,147,26,0.1); color: var(--text); box-shadow: inset 2px 0 0 var(--btc); }
-aside .ct{ font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--text-faint); }
+.gov-dashboard-root aside a:hover{ background: rgba(255,255,255,0.04); color: var(--text); }
+.gov-dashboard-root aside a.on{ background: rgba(247,147,26,0.1); color: var(--text); box-shadow: inset 2px 0 0 var(--btc); }
+.gov-dashboard-root aside .ct{ font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--text-faint); }
 
-main{ padding: 26px 26px 80px; min-width:0; }
-@media (max-width: 620px){ main{ padding: 20px 16px 60px; } }
+.gov-dashboard-root main{ padding: 26px 26px 80px; min-width:0; }
+@media (max-width: 620px){ .gov-dashboard-root main{ padding: 20px 16px 60px; } }
 
 /* ---------- search row ---------- */
 .searchrow{ display:flex; gap:10px; flex-wrap:wrap; }

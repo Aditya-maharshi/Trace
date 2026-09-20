@@ -21,7 +21,7 @@ export function GovernmentLandingPage() {
       <a href="#how">How it works</a>
       <a href="#statutory">Statutory output</a>
       <a href="#sovereignty">Data sovereignty</a>
-      <a href="/dashboard">Console</a>
+      <a href="/government/dashboard">Console</a>
     </div>
     <a href="#brief" className="nav-cta">Request a briefing</a>
   </nav>
@@ -316,7 +316,7 @@ export function GovernmentLandingPage() {
       <a href="#how">How it works</a>
       <a href="#statutory">Statutory output</a>
       <a href="#sovereignty">Data sovereignty</a>
-      <a href="/dashboard">Console</a>
+      <a href="/government/dashboard">Console</a>
     </div>
     <div className="copyright">© 2026 Trace · Automated VASP Attribution · SIH 2026 Problem Statement 26182</div>
   </div>
