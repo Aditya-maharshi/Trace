@@ -28,10 +28,10 @@ function GovernmentDashboardAuthGuard() {
         return;
       }
 
-      // 2. Permission check
-      const hasGovAccess = session.user.app_metadata?.["government_access"] === true || 
-                           session.user.user_metadata?.["government_access"] === true;
-                           
+      // 2. Permission check — trust ONLY app_metadata (server-controlled).
+      // user_metadata is client-writable; do not fall back to it.
+      const hasGovAccess = session.user.app_metadata?.["government_access"] === true;
+
       if (!hasGovAccess) {
         setError("Access Denied: Government access required.");
         setLoadingAuth(false);
