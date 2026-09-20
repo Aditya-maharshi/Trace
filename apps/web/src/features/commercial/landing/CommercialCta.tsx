@@ -16,7 +16,7 @@ export function CommercialCta() {
             <span className={styles.platformPill}>REST API &amp; Webhook Ready</span>
           </div>
           <div>
-            <Link to="/signup" className={styles.btnPrimary}>
+            <Link to={("/commercial/signup") as any} className={styles.btnPrimary}>
               Start tracing for free
             </Link>
           </div>

@@ -557,7 +557,7 @@ export function AuthForm({ mode, config }: { mode: "signup" | "login"; config: T
           )}
 
           <div className={styles.switchLine}>
-            {config.altPrompt.text} <Link to={config.altPrompt.to} hash={config.altPrompt.hash}>{config.altPrompt.label}</Link>
+            {config.altPrompt.text} <Link to={config.altPrompt.to as any} {...(config.altPrompt.hash ? { hash: config.altPrompt.hash } : {})}>{config.altPrompt.label}</Link>
           </div>
         </div>
       </main>

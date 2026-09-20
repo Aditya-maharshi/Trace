@@ -84,8 +84,8 @@ function pathAddresses(data: AttributionResponse): string[] {
 function vaspDisplay(row: LookupRow): string {
   const raw = row.raw_response;
   const label =
-    (typeof raw?.nearestVaspLabel === "string" && raw.nearestVaspLabel) ||
-    (typeof raw?.nearest_vasp_label === "string" && raw.nearest_vasp_label) ||
+    (typeof raw?.['nearestVaspLabel'] === "string" && raw['nearestVaspLabel']) ||
+    (typeof raw?.['nearest_vasp_label'] === "string" && raw['nearest_vasp_label']) ||
     null;
   const value = label || row.nearest_vasp;
   if (!value) return "Unhosted";

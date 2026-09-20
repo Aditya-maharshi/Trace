@@ -23,13 +23,13 @@ function GovernmentDashboardAuthGuard() {
       // 1. Auth check
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        navigate({ to: "/login", search: { redirect: "/government" } as any });
+        navigate({ to: "/login" as any, search: { redirect: "/government" } as any });
         return;
       }
 
       // 2. Permission check
-      const hasGovAccess = session.user.app_metadata?.government_access === true || 
-                           session.user.user_metadata?.government_access === true;
+      const hasGovAccess = session.user.app_metadata?.["government_access"] === true || 
+                           session.user.user_metadata?.["government_access"] === true;
                            
       if (!hasGovAccess) {
         setError("Access Denied: Government access required.");
@@ -51,7 +51,7 @@ function GovernmentDashboardAuthGuard() {
           <h2 className="text-xl font-bold mb-2">Access Denied</h2>
           <p>{error}</p>
           <button 
-            onClick={() => navigate({ to: "/" })}
+            onClick={() => navigate({ to: "/" as any })}
             className="mt-4 px-4 py-2 bg-white/10 hover:bg-white/20 rounded transition-colors text-sm"
           >
             Return to Gateway
@@ -118,7 +118,7 @@ function SahyogQueuePage() {
             <button 
               onClick={async () => {
                 await supabase.auth.signOut();
-                navigate({ to: "/login" });
+                navigate({ to: "/login" as any });
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-white/50 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer"
             >

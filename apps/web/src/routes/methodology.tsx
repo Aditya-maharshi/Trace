@@ -63,7 +63,7 @@ function MethodologyPage() {
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#06060a]/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link
-            to="/"
+            to={"/" as any}
             className="inline-flex items-center gap-2 text-sm font-medium text-white/70 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -74,7 +74,7 @@ function MethodologyPage() {
               v1.2 Active Specification
             </span>
             <Link
-              to="/dashboard"
+              to={"/dashboard" as any}
               className="inline-flex items-center gap-1.5 bg-emerald-600 from-[#f7931a] to-[#ffaa40] text-[#08080c] text-xs font-bold px-4 py-2 rounded-lg shadow-[0_0_15px_rgba(247,147,26,0.35)] hover:shadow-[0_0_22px_rgba(247,147,26,0.6)] hover:from-[#ffaa40] hover:to-[#f7931a] transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <span>Launch Engine</span>
@@ -212,7 +212,7 @@ function MethodologyPage() {
           </p>
           <div className="pt-2">
             <Link
-              to="/dashboard"
+              to={"/dashboard" as any}
               className="inline-flex items-center gap-2 bg-emerald-600 from-[#f7931a] to-[#ffaa40] text-[#08080c] text-sm font-bold px-6 py-2.5 rounded-lg shadow-[0_0_20px_rgba(247,147,26,0.4)] hover:shadow-[0_0_28px_rgba(247,147,26,0.65)] hover:from-[#ffaa40] hover:to-[#f7931a] transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <span>Launch Forensic Engine</span>
@@ -224,7 +224,7 @@ function MethodologyPage() {
         {/* Footer info */}
         <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/50 font-mono">
           <div>Trace Blockchain Intelligence — SIH Edition</div>
-          <Link to="/" className="text-white/70 hover:text-white underline">
+          <Link to={"/" as any} className="text-white/70 hover:text-white underline">
             Return to Landing Page
           </Link>
         </div>

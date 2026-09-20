@@ -12,12 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CasesRouteImport } from './routes/cases'
 import { Route as CommercialRouteImport } from './routes/commercial'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as GovernmentRouteImport } from './routes/government'
-import { Route as HistoryRouteImport } from './routes/history'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as MethodologyRouteImport } from './routes/methodology'
-import { Route as SignupRouteImport } from './routes/signup'
+import { Route as CommercialIndexRouteImport } from './routes/commercial/index'
+import { Route as CommercialDashboardRouteImport } from './routes/commercial/dashboard'
+import { Route as CommercialLoginRouteImport } from './routes/commercial/login'
+import { Route as CommercialSignupRouteImport } from './routes/commercial/signup'
 import { Route as ApiPublicAttributeStreamRouteImport } from './routes/api/public/attribute-stream'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,24 +35,9 @@ const CommercialRoute = CommercialRouteImport.update({
   path: '/commercial',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const GovernmentRoute = GovernmentRouteImport.update({
   id: '/government',
   path: '/government',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HistoryRoute = HistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MethodologyRoute = MethodologyRouteImport.update({
@@ -60,10 +45,25 @@ const MethodologyRoute = MethodologyRouteImport.update({
   path: '/methodology',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignupRoute = SignupRouteImport.update({
+const CommercialIndexRoute = CommercialIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CommercialRoute,
+} as any)
+const CommercialDashboardRoute = CommercialDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => CommercialRoute,
+} as any)
+const CommercialLoginRoute = CommercialLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => CommercialRoute,
+} as any)
+const CommercialSignupRoute = CommercialSignupRouteImport.update({
   id: '/signup',
   path: '/signup',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => CommercialRoute,
 } as any)
 const ApiPublicAttributeStreamRoute =
   ApiPublicAttributeStreamRouteImport.update({
@@ -75,38 +75,37 @@ const ApiPublicAttributeStreamRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cases': typeof CasesRoute
-  '/commercial': typeof CommercialRoute
-  '/dashboard': typeof DashboardRoute
+  '/commercial': typeof CommercialRouteWithChildren
   '/government': typeof GovernmentRoute
-  '/history': typeof HistoryRoute
-  '/login': typeof LoginRoute
   '/methodology': typeof MethodologyRoute
-  '/signup': typeof SignupRoute
+  '/commercial/dashboard': typeof CommercialDashboardRoute
+  '/commercial/login': typeof CommercialLoginRoute
+  '/commercial/signup': typeof CommercialSignupRoute
+  '/commercial/': typeof CommercialIndexRoute
   '/api/public/attribute-stream': typeof ApiPublicAttributeStreamRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cases': typeof CasesRoute
-  '/commercial': typeof CommercialRoute
-  '/dashboard': typeof DashboardRoute
   '/government': typeof GovernmentRoute
-  '/history': typeof HistoryRoute
-  '/login': typeof LoginRoute
   '/methodology': typeof MethodologyRoute
-  '/signup': typeof SignupRoute
+  '/commercial/dashboard': typeof CommercialDashboardRoute
+  '/commercial/login': typeof CommercialLoginRoute
+  '/commercial/signup': typeof CommercialSignupRoute
+  '/commercial': typeof CommercialIndexRoute
   '/api/public/attribute-stream': typeof ApiPublicAttributeStreamRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cases': typeof CasesRoute
-  '/commercial': typeof CommercialRoute
-  '/dashboard': typeof DashboardRoute
+  '/commercial': typeof CommercialRouteWithChildren
   '/government': typeof GovernmentRoute
-  '/history': typeof HistoryRoute
-  '/login': typeof LoginRoute
   '/methodology': typeof MethodologyRoute
-  '/signup': typeof SignupRoute
+  '/commercial/dashboard': typeof CommercialDashboardRoute
+  '/commercial/login': typeof CommercialLoginRoute
+  '/commercial/signup': typeof CommercialSignupRoute
+  '/commercial/': typeof CommercialIndexRoute
   '/api/public/attribute-stream': typeof ApiPublicAttributeStreamRoute
 }
 export interface FileRouteTypes {
@@ -115,49 +114,44 @@ export interface FileRouteTypes {
     | '/'
     | '/cases'
     | '/commercial'
-    | '/dashboard'
     | '/government'
-    | '/history'
-    | '/login'
     | '/methodology'
-    | '/signup'
+    | '/commercial/dashboard'
+    | '/commercial/login'
+    | '/commercial/signup'
+    | '/commercial/'
     | '/api/public/attribute-stream'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/cases'
-    | '/commercial'
-    | '/dashboard'
     | '/government'
-    | '/history'
-    | '/login'
     | '/methodology'
-    | '/signup'
+    | '/commercial/dashboard'
+    | '/commercial/login'
+    | '/commercial/signup'
+    | '/commercial'
     | '/api/public/attribute-stream'
   id:
     | '__root__'
     | '/'
     | '/cases'
     | '/commercial'
-    | '/dashboard'
     | '/government'
-    | '/history'
-    | '/login'
     | '/methodology'
-    | '/signup'
+    | '/commercial/dashboard'
+    | '/commercial/login'
+    | '/commercial/signup'
+    | '/commercial/'
     | '/api/public/attribute-stream'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CasesRoute: typeof CasesRoute
-  CommercialRoute: typeof CommercialRoute
-  DashboardRoute: typeof DashboardRoute
+  CommercialRoute: typeof CommercialRouteWithChildren
   GovernmentRoute: typeof GovernmentRoute
-  HistoryRoute: typeof HistoryRoute
-  LoginRoute: typeof LoginRoute
   MethodologyRoute: typeof MethodologyRoute
-  SignupRoute: typeof SignupRoute
   ApiPublicAttributeStreamRoute: typeof ApiPublicAttributeStreamRoute
 }
 
@@ -184,32 +178,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommercialRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/government': {
       id: '/government'
       path: '/government'
       fullPath: '/government'
       preLoaderRoute: typeof GovernmentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/history': {
-      id: '/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof HistoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/methodology': {
@@ -219,12 +192,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MethodologyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/signup': {
-      id: '/signup'
+    '/commercial/': {
+      id: '/commercial/'
+      path: '/'
+      fullPath: '/commercial/'
+      preLoaderRoute: typeof CommercialIndexRouteImport
+      parentRoute: typeof CommercialRoute
+    }
+    '/commercial/dashboard': {
+      id: '/commercial/dashboard'
+      path: '/dashboard'
+      fullPath: '/commercial/dashboard'
+      preLoaderRoute: typeof CommercialDashboardRouteImport
+      parentRoute: typeof CommercialRoute
+    }
+    '/commercial/login': {
+      id: '/commercial/login'
+      path: '/login'
+      fullPath: '/commercial/login'
+      preLoaderRoute: typeof CommercialLoginRouteImport
+      parentRoute: typeof CommercialRoute
+    }
+    '/commercial/signup': {
+      id: '/commercial/signup'
       path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/commercial/signup'
+      preLoaderRoute: typeof CommercialSignupRouteImport
+      parentRoute: typeof CommercialRoute
     }
     '/api/public/attribute-stream': {
       id: '/api/public/attribute-stream'
@@ -236,16 +230,30 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CommercialRouteChildren {
+  CommercialDashboardRoute: typeof CommercialDashboardRoute
+  CommercialLoginRoute: typeof CommercialLoginRoute
+  CommercialSignupRoute: typeof CommercialSignupRoute
+  CommercialIndexRoute: typeof CommercialIndexRoute
+}
+
+const CommercialRouteChildren: CommercialRouteChildren = {
+  CommercialDashboardRoute: CommercialDashboardRoute,
+  CommercialLoginRoute: CommercialLoginRoute,
+  CommercialSignupRoute: CommercialSignupRoute,
+  CommercialIndexRoute: CommercialIndexRoute,
+}
+
+const CommercialRouteWithChildren = CommercialRoute._addFileChildren(
+  CommercialRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CasesRoute: CasesRoute,
-  CommercialRoute: CommercialRoute,
-  DashboardRoute: DashboardRoute,
+  CommercialRoute: CommercialRouteWithChildren,
   GovernmentRoute: GovernmentRoute,
-  HistoryRoute: HistoryRoute,
-  LoginRoute: LoginRoute,
   MethodologyRoute: MethodologyRoute,
-  SignupRoute: SignupRoute,
   ApiPublicAttributeStreamRoute: ApiPublicAttributeStreamRoute,
 }
 export const routeTree = rootRouteImport

@@ -58,10 +58,10 @@ export function CommercialHero() {
               structuring detection, and sanctions screening.
             </p>
             <div className={styles.heroActions}>
-              <Link to="/signup" className={styles.btnPrimary}>
+              <Link to={("/commercial/signup") as any} className={styles.btnPrimary}>
                 Start tracing now
               </Link>
-              <Link to="/dashboard" className={styles.btnGhost}>
+              <Link to={("/commercial/dashboard") as any} className={styles.btnGhost}>
                 Try live demo →
               </Link>
             </div>

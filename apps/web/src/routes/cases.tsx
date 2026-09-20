@@ -39,7 +39,7 @@ function CasesPage() {
           if (user?.email) setUserEmail(user.email);
         });
       } else {
-        navigate({ to: "/login" });
+        navigate({ to: "/login" as any });
       }
     });
 
@@ -49,7 +49,7 @@ function CasesPage() {
       if (session) {
         setCheckedAuth(true);
       } else if (!localStorage.getItem("trace_guest_session")) {
-        navigate({ to: "/login" });
+        navigate({ to: "/login" as any });
       }
     });
 
@@ -93,7 +93,7 @@ function CasesPage() {
 
         <div className="flex items-center gap-1">
           <Link
-            to="/dashboard"
+            to={"/dashboard" as any}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-white/50 hover:text-white hover:bg-white/5 transition-all"
           >
             <LayoutDashboard className="h-3.5 w-3.5" />
@@ -104,7 +104,7 @@ function CasesPage() {
             Cases
           </div>
           <Link
-            to="/history"
+            to={"/history" as any}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-white/50 hover:text-white hover:bg-white/5 transition-all"
           >
             <History className="h-3.5 w-3.5" />
@@ -122,7 +122,7 @@ function CasesPage() {
               localStorage.removeItem("trace_guest_session");
               localStorage.removeItem("trace_demo_provider");
               await supabase.auth.signOut();
-              navigate({ to: "/login", search: { switch: "true" } as any });
+              navigate({ to: "/login" as any, search: { switch: "true" } as any });
             }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-white/50 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer"
           >

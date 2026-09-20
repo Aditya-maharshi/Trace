@@ -5,6 +5,13 @@ import type { Session } from "@supabase/supabase-js";
 
 export type GuardStatus = "loading" | "denied" | "ok";
 
+function hasGovAccess(session: Session): boolean {
+  return (
+    session.user.app_metadata?.["government_access"] === true ||
+    session.user.user_metadata?.["government_access"] === true
+  );
+}
+
 export function useGovernmentGuard() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<GuardStatus>("loading");
@@ -22,17 +29,13 @@ export function useGovernmentGuard() {
           typeof window !== "undefined" &&
           (window.location.hash.includes("access_token") || window.location.search.includes("code="));
         if (!hasAuthParams) {
-          navigate({ to: "/government/login", search: { redirect: "/government/dashboard" } as never });
+          navigate({ to: "/government/login" as any, search: { redirect: "/government/dashboard" } as never });
         }
         return;
       }
 
       // 2. Permission check
-      const hasGovAccess =
-        currentSession.user.app_metadata?.government_access === true ||
-        currentSession.user.user_metadata?.government_access === true;
-
-      if (!hasGovAccess) {
+      if (!hasGovAccess(currentSession)) {
         setStatus("denied");
         return;
       }
@@ -48,17 +51,14 @@ export function useGovernmentGuard() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, currentSession) => {
       if (currentSession) {
-        const hasGovAccess =
-          currentSession.user.app_metadata?.government_access === true ||
-          currentSession.user.user_metadata?.government_access === true;
-        if (!hasGovAccess) {
+        if (!hasGovAccess(currentSession)) {
           setStatus("denied");
         } else {
           setSession(currentSession);
           setStatus("ok");
         }
       } else {
-        navigate({ to: "/government/login", search: { redirect: "/government/dashboard" } as never });
+        navigate({ to: "/government/login" as any, search: { redirect: "/government/dashboard" } as never });
       }
     });
 
