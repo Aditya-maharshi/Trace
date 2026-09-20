@@ -1,4 +1,4 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/commercial")({
   head: () => ({
@@ -6,5 +6,5 @@ export const Route = createFileRoute("/commercial")({
       { title: "Trace for Commercial — Wallet-to-VASP Attribution" },
     ],
   }),
-  component: () => <Navigate to="/" hash="enter" />,
+  component: () => <Outlet />,
 });
