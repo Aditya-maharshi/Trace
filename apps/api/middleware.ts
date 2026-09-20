@@ -90,7 +90,6 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute =
     apiPath === "/api/prices" ||
     apiPath === "/api/health" ||
-    apiPath === "/api/docs" ||
     apiPath === "/api/methodology" ||
     apiPath === "/api/mcp";
 
@@ -98,7 +97,7 @@ export async function middleware(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
   
   if (!isPublicRoute) {
-    let presentedKey = request.headers.get("x-api-key") ?? request.nextUrl.searchParams.get("apiKey") ?? "";
+    let presentedKey = request.headers.get("x-api-key") ?? "";
     if (!presentedKey && authHeader && authHeader.startsWith("Bearer trace_live_sk_")) {
         presentedKey = authHeader.replace("Bearer ", "");
     }
@@ -141,9 +140,7 @@ export async function middleware(request: NextRequest) {
               event: "security_alert",
               type: "auth_failure",
               reason: authResult.error,
-              key_prefix: presentedKey.substring(0, 15) + "...",
               path: pathname,
-              ip: request.headers.get("x-forwarded-for") || "unknown",
               timestamp: new Date().toISOString()
             }));
             return NextResponse.json(

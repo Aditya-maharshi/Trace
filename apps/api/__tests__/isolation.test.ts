@@ -217,10 +217,13 @@ describe("Route manifest coverage", () => {
     // Routes that are legitimately public and don't require isolation testing
     const publicRoutes = [
       "/api/health",
-      "/api/docs",
       "/api/prices",
       "/api/methodology",
       "/api/config",
+    ];
+
+    const hiddenRoutes = [
+      "/api/docs",
     ];
 
     const internalRoutes = [
@@ -229,6 +232,7 @@ describe("Route manifest coverage", () => {
 
     const untestedRoutes = discoveredRoutes.filter(
       (r) => !publicRoutes.some((p) => r.startsWith(p)) &&
+              !hiddenRoutes.some((p) => r.startsWith(p)) &&
               !internalRoutes.some((i) => r.startsWith(i)) &&
               // Routes under /api/cases are tested above
               !r.startsWith("/api/cases") &&

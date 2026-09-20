@@ -117,5 +117,9 @@ const swaggerDoc = {
 };
 
 export async function GET() {
+  // OpenAPI is off by default so the route catalog is not public.
+  if (process.env.ENABLE_API_DOCS !== "true") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   return NextResponse.json(swaggerDoc);
 }

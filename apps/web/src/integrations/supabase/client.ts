@@ -31,21 +31,23 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 function createSupabaseClient() {
-  const DEFAULT_SUPABASE_URL = "https://pnbiihaspktflwuvjwmd.supabase.co";
-  const DEFAULT_SUPABASE_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuYmlpaGFzcGt0Zmx3dXZqd21kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5MzA1ODAsImV4cCI6MjEwNDUwNjU4MH0.NUCsKUoPEwm8pRqUmyvYZB4udN9Ex7Bfwf3zwZmSZy8";
-
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
   const SUPABASE_URL =
     import.meta.env["VITE_SUPABASE_URL"] ||
     process.env["SUPABASE_URL"] ||
-    DEFAULT_SUPABASE_URL;
+    "";
 
   const SUPABASE_PUBLISHABLE_KEY =
     import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ||
     process.env["SUPABASE_PUBLISHABLE_KEY"] ||
-    DEFAULT_SUPABASE_KEY;
+    "";
+
+  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+    throw new Error(
+      "Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY. Set them in the environment; do not hardcode project credentials.",
+    );
+  }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     global: {
