@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import "./trace-landing.css";
-
-const INTRO_SRC = "/intro.mp4";
+import { useIntro } from "./useIntro";
+import { IntroOverlay } from "./IntroOverlay";
 
 function scrollToId(id: string) {
   const el = document.getElementById(id);
@@ -19,7 +19,7 @@ function scrollToId(id: string) {
 export function NewLandingPage() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [navOpen, setNavOpen] = useState(false);
-  const [introActive, setIntroActive] = useState(false);
+  const { showIntro, finishIntro } = useIntro();
 
   useEffect(() => {
     const root = rootRef.current;
@@ -46,44 +46,12 @@ export function NewLandingPage() {
   }, []);
 
   useEffect(() => {
-    if (introActive) return;
+    if (showIntro) return;
     const id = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
     if (!id) return;
     const t = window.setTimeout(() => scrollToId(id), 50);
     return () => window.clearTimeout(t);
-  }, [introActive]);
-
-  useEffect(() => {
-    let cancelled = false;
-    try {
-      if (sessionStorage.getItem("traceIntroSeen")) return;
-    } catch {
-      /* ignore */
-    }
-    fetch(INTRO_SRC, { method: "HEAD" })
-      .then((res) => {
-        if (!cancelled && res.ok) {
-          document.documentElement.classList.add("intro-on");
-          setIntroActive(true);
-        }
-      })
-      .catch(() => {
-        /* no intro asset — show the page immediately */
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  function finishIntro() {
-    try {
-      sessionStorage.setItem("traceIntroSeen", "1");
-    } catch {
-      /* ignore */
-    }
-    document.documentElement.classList.remove("intro-on");
-    setIntroActive(false);
-  }
+  }, [showIntro]);
 
   return (
     <div className="trace-landing" ref={rootRef} id="top">
@@ -107,27 +75,10 @@ export function NewLandingPage() {
         </symbol>
       </svg>
 
-      {introActive && (
-        <div id="intro" role="dialog" aria-modal="true" aria-label="Trace intro">
-          <video
-            id="introVideo"
-            muted
-            playsInline
-            autoPlay
-            src={INTRO_SRC}
-            onEnded={finishIntro}
-            onError={finishIntro}
-          />
-          <button type="button" className="intro-skip" onClick={finishIntro} aria-label="Skip intro">
-            Skip
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M5 5l9 7-9 7V5zM19 5v14" />
-            </svg>
-          </button>
-        </div>
-      )}
+      {showIntro && <IntroOverlay onFinish={finishIntro} />}
 
-      <div className="ambient">
+      <div data-intro-content>
+        <div className="ambient">
         <div className="orb-a" />
         <div className="orb-b" />
         <div className="grid" />
@@ -355,7 +306,7 @@ export function NewLandingPage() {
                   </span>
                 </Link>
 
-                <Link className="path-card business reveal" to="/dashboard">
+                <Link className="path-card business reveal" to="/commercial">
                   <div className="path-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 21V8l8-5 8 5v13" /><path d="M9 21v-6h6v6" /><path d="M9 11h.01M9 15h.01M15 11h.01M15 15h.01" /></svg>
                   </div>
@@ -374,6 +325,7 @@ export function NewLandingPage() {
       </main>
 
       <footer className="tl-footer">© 2026 Trace · Automated VASP Attribution · SIH 2026 Problem Statement 26182</footer>
+      </div>
     </div>
   );
 }
