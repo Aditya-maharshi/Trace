@@ -101,7 +101,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     // 1. Verify case exists
-    const admin = getSupabaseAdmin();
+    const admin = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
     if (!admin) {
       return NextResponse.json({ error: "Database service unavailable" }, { status: 500 });
     }

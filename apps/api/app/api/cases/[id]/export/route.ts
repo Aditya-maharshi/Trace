@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { extractVerifiedUserIdAsync } from '../../../../../lib/domains/auth/verifyJwt';
 import { getCaseDetails , assertCaseAccess } from '../../../../../lib/domains/cases/caseStore';
 import { withApiVersionHeaders } from '../../../../../lib/domains/core/apiVersion';
-import { getSupabaseAdmin } from '../../../../../lib/domains/core/auditLog';
+import { getSupabaseAdmin , getSupabaseUserClient } from '../../../../../lib/domains/core/auditLog';
 
 /**
  * Explicit allow-list of fields for SAR export.
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     };
 
     // Log the export action itself in case_history for chain-of-custody
-    const client = getSupabaseAdmin();
+    const client = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
     if (client) {
       await client.from('case_history').insert({
         case_id: params.id,

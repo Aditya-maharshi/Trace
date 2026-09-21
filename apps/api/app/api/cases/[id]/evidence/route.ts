@@ -3,7 +3,7 @@ import { extractVerifiedUserIdAsync } from '../../../../../lib/domains/auth/veri
 import { assertCaseAccess } from '../../../lib/domains/cases/caseStore';
 import { pinEvidence } from '../../../../../lib/domains/cases/caseStore';
 import { withApiVersionHeaders } from '../../../../../lib/domains/core/apiVersion';
-import { getSupabaseAdmin } from '../../../../../lib/domains/core/auditLog';
+import { getSupabaseAdmin , getSupabaseUserClient } from '../../../../../lib/domains/core/auditLog';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const authHeader = req.headers.get('authorization') || '';
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const client = getSupabaseAdmin();
+  const client = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
   if (!client) {
     return NextResponse.json({ error: 'Database service unavailable' }, { status: 500 });
   }

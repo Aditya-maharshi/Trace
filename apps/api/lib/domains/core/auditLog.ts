@@ -125,3 +125,13 @@ export async function logLookup(entry: LookupLogEntry): Promise<void> {
     console.warn("[auditLog] Unexpected error during insert:", err);
   }
 }
+
+
+export function getSupabaseUserClient(authHeader: string): SupabaseClient | null {
+  const url = process.env.SUPABASE_URL;
+  const anonKey = process.env.SUPABASE_ANON_KEY;
+  if (!url || !anonKey) return null;
+  return createClient(url, anonKey, {
+    global: { headers: { Authorization: authHeader } }
+  });
+}

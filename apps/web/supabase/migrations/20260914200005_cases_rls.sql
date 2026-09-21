@@ -74,4 +74,4 @@ alter table public.sla_policies enable row level security;
 create policy "Users can view SLA policies"
   on public.sla_policies for select
   to authenticated
-  using (true);
+  using (org_id = current_setting('app.current_org_id', true));

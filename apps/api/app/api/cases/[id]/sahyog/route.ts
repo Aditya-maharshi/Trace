@@ -20,7 +20,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: "requestId is required" }, { status: 400 });
     }
 
-    const admin = getSupabaseAdmin();
+    const admin = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
     if (!admin) {
       return NextResponse.json({ error: "Database service unavailable" }, { status: 500 });
     }
