@@ -1,5 +1,6 @@
 export async function register() {
   if (process.env.NODE_ENV === 'production') {
+    if (process.env.DEMO_MODE === 'true') throw new Error('DEMO_MODE is true in production');
     const requiredSecrets = ['SUPABASE_JWT_SECRET', 'AUTOMATION_SECRET', 'CRON_SECRET'];
     for (const secret of requiredSecrets) {
       if (!process.env[secret]) {

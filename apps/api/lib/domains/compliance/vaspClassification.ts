@@ -2,7 +2,7 @@ import type {
   VaspClassificationDetails, 
   VaspClassification, 
   LegalInstrument 
-} from "../../../packages/shared-types";
+} from "@sih/shared-types";
 
 /**
  * Maps FIU-IND compliance classifications to available legal instruments.

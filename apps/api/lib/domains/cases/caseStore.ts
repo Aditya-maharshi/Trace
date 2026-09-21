@@ -68,6 +68,17 @@ export interface TransitionResult {
 }
 
 /**
+ * Asserts access to a case row. DENIES by default.
+ * Treats NULL owner as "not yours" unless there is an explicit guest-session capability.
+ */
+export function assertCaseAccess(caseRow: any, userId: string, orgId?: string): boolean {
+  if (!caseRow || !userId) return false;
+  if (orgId && caseRow.org_id === orgId) return true;
+  if (caseRow.user_id === userId || caseRow.analyst_id === userId) return true;
+  return false;
+}
+
+/**
  * Creates a new case and its initial history entry.
  */
 export async function createCase(params: CreateCaseParams): Promise<Case> {

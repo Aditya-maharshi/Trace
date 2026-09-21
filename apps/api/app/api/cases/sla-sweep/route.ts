@@ -10,6 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { getSupabaseAdmin } from '../../../../lib/domains/core/auditLog';
 import { computeSlaStatus, DEFAULT_SLA_THRESHOLDS_HOURS, CaseStatus, SlaStatus } from '@sih/shared-types';
 import { sendCaseNotification } from '../../../../lib/domains/cases/caseNotifications';

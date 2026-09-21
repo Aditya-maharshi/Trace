@@ -3,7 +3,7 @@ import PDFDocument from "pdfkit";
 import { getSupabaseAdmin } from "../../../../../lib/domains/core/auditLog";
 import { loadAttributionResult } from "../../../../../lib/domains/core/resultStore";
 import { computePayloadHash } from "../../../../../lib/domains/cases/caseStore";
-import type { AttributionResponse } from "../../../../../../../packages/shared-types";
+import type { AttributionResponse } from "@sih/shared-types";
 
 function buildCertificatePdfStream(data: AttributionResponse, caseId: string, payloadHash: string): ReadableStream {
   return new ReadableStream({

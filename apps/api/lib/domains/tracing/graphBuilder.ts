@@ -22,7 +22,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import type { BridgeExitPoint } from "../../../packages/shared-types";
+import type { BridgeExitPoint } from "@sih/shared-types";
 import {
   getTransactions,
   getTokenTransactions,

@@ -36,7 +36,7 @@ import type {
   BridgeExitPoint,
   ScoredAttribution,
   MethodologyDisclosure
-} from "../../../packages/shared-types";
+} from "@sih/shared-types";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Main pipeline function
@@ -136,7 +136,7 @@ export async function buildAttributionResponse(
     hopIndex,
   }));
 
-  const dynamicMixerExposure = bfsResult.mixerExposures.map((m) => ({
+  const dynamicMixerExposure = m.mixerExposures.map((m) => ({
     address: m.address,
     label: "Unlabelled Mixer (Collaborative Spend)",
     hopIndex: m.hopIndex,

@@ -42,7 +42,7 @@ import { buildVaspSet } from "../../../lib/domains/tracing/vaspLabels";
 import { logLookup } from "../../../lib/domains/core/auditLog";
 import { isValidEthAddress } from "../../../lib/domains/core/validation";
 import { buildAttributionResponse } from "../../../lib/domains/tracing/buildAttributionResponse";
-import type { AttributionResponse } from "../../../../../packages/shared-types";
+import type { AttributionResponse } from "@sih/shared-types";
 import { requestContextStorage, logError } from "../../../lib/domains/core/logger";
 import { extractVerifiedUserIdAsync } from "../../../lib/domains/auth/verifyJwt";
 import { storeAttributionResult } from "../../../lib/domains/core/resultStore";

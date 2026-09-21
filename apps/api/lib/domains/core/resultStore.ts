@@ -9,7 +9,7 @@
  * Fallback: in-memory Map (local/dev only — does not survive serverless cold starts)
  */
 
-import type { AttributionResponse } from "../../../packages/shared-types";
+import type { AttributionResponse } from "@sih/shared-types";
 import { getRedisClient } from "../core/redis";
 
 const RESULT_TTL_SECONDS = 24 * 60 * 60;

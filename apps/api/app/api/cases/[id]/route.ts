@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractVerifiedUserIdAsync } from '../../../../lib/domains/auth/verifyJwt';
-import { getCaseDetails, transitionCase } from '../../../../lib/domains/cases/caseStore';
+import { getCaseDetails, transitionCase , assertCaseAccess } from '../../../../lib/domains/cases/caseStore';
 import { withApiVersionHeaders } from '../../../../lib/domains/core/apiVersion';
 import { CaseStatus } from '@sih/shared-types';
 
@@ -95,6 +95,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     });
   } catch (err: any) {
     console.error(`[PATCH /api/cases/${params.id}] Error:`, err);
-    return NextResponse.json({ error: .Internal Server Error. }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

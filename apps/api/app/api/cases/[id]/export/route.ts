@@ -11,7 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { extractVerifiedUserIdAsync } from '../../../../../lib/domains/auth/verifyJwt';
-import { getCaseDetails } from '../../../../../lib/domains/cases/caseStore';
+import { getCaseDetails , assertCaseAccess } from '../../../../../lib/domains/cases/caseStore';
 import { withApiVersionHeaders } from '../../../../../lib/domains/core/apiVersion';
 import { getSupabaseAdmin } from '../../../../../lib/domains/core/auditLog';
 
@@ -117,6 +117,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     });
   } catch (err: any) {
     console.error(`[POST /api/cases/${params.id}/export] Error:`, err);
-    return NextResponse.json({ error: .Internal Server Error. }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

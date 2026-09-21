@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractVerifiedUserIdAsync } from '../../../../../lib/domains/auth/verifyJwt';
-import { addWalletToCase, removeWalletFromCase } from '../../../../../lib/domains/cases/caseStore';
+import { addWalletToCase, removeWalletFromCase , assertCaseAccess } from '../../../../../lib/domains/cases/caseStore';
 import { runCaseAutomationScan } from '../../../../../lib/domains/cases/caseAutomation';
 import { withApiVersionHeaders } from '../../../../../lib/domains/core/apiVersion';
 import { getSupabaseAdmin } from '../../../../../lib/domains/core/auditLog';
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (!caseRow) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
-    if (caseRow.user_id !== null && caseRow.user_id !== userId && caseRow.analyst_id !== userId) {
+    if (!assertCaseAccess(caseRow, userId, secureOrgId)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       if (!caseRow) {
         return NextResponse.json({ error: 'Case not found' }, { status: 404 });
       }
-      if (caseRow.user_id !== null && caseRow.user_id !== userId && caseRow.analyst_id !== userId) {
+      if (!assertCaseAccess(caseRow, userId, secureOrgId)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     });
   } catch (err: any) {
     console.error(`[POST /api/cases/${params.id}/wallets] Error:`, err);
-    return NextResponse.json({ error: .Internal Server Error. }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
@@ -136,7 +136,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     if (!caseRow) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
-    if (caseRow.user_id !== null && caseRow.user_id !== userId && caseRow.analyst_id !== userId) {
+    if (!assertCaseAccess(caseRow, userId, secureOrgId)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
   }

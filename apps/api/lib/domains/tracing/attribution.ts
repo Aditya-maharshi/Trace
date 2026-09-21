@@ -24,7 +24,7 @@ import type { Transaction, TokenTransaction } from "../tracing/etherscan";
 /** Confidence tier assigned to an attribution. */
 export type ConfidenceLevel = "High" | "Medium" | "Low";
 
-import type { ScoreBreakdown, ScoredAttribution } from "../../../packages/shared-types";
+import type { ScoreBreakdown, ScoredAttribution } from "@sih/shared-types";
 
 /**
  * Aggregated attribution result for a single VASP, combining all paths.

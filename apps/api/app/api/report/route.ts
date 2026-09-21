@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
 import { Parser } from "json2csv";
-import type { AttributionResponse } from "../../../../../packages/shared-types";
+import type { AttributionResponse } from "@sih/shared-types";
 import { isValidRequestId, loadAttributionResult } from "../../../lib/domains/core/resultStore";
 
 export const maxDuration = 10;

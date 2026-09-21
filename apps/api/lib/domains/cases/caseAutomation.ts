@@ -7,11 +7,11 @@
  * via the same atomic single-write path used by human analysts.
  */
 
-import { getSupabaseAdmin } from './auditLog';
+import { getSupabaseAdmin } from '../core/auditLog';
 import { transitionCase } from './caseStore';
-import { checkSanctionedDetailed, type SanctionsCheckResult } from './sanctions';
-import { getTransactions, getTokenTransactions } from './etherscan';
-import { extractNormalizedNeighbors, rankNeighborsByValue, rankNeighborsByStructuringSignal, ALLOWED_TOKEN_CONTRACTS } from './graphBuilder';
+import { checkSanctionedDetailed, type SanctionsCheckResult } from '../compliance/sanctions';
+import { getTransactions, getTokenTransactions } from '../tracing/etherscan';
+import { extractNormalizedNeighbors, rankNeighborsByValue, rankNeighborsByStructuringSignal, ALLOWED_TOKEN_CONTRACTS } from '../tracing/graphBuilder';
 
 const MAX_DEPTH = 4;
 const MAX_FANOUT = 15;
@@ -52,7 +52,7 @@ export async function runCaseAutomationScan(caseId: string): Promise<void> {
 
   if (!wallets || wallets.length === 0) return;
 
-  const startAddresses = wallets.map(w => w.address.toLowerCase());
+  const startAddresses = wallets.map((w: any) => w.address.toLowerCase());
 
   // 2. Perform BFS from all start addresses simultaneously
   const visited = new Set<string>();
@@ -93,7 +93,7 @@ export async function runCaseAutomationScan(caseId: string): Promise<void> {
       const ethData = Array.isArray(ethRaw) ? ethRaw : (ethRaw?.data || []);
       const tokenData = Array.isArray(tokenRaw) ? tokenRaw : (tokenRaw?.data || []);
       
-      const filteredTokens = tokenData.filter(t => 
+      const filteredTokens = tokenData.filter((t: any) => 
         ALLOWED_TOKEN_CONTRACTS.has(t.contractAddress.toLowerCase())
       );
 
@@ -108,7 +108,7 @@ export async function runCaseAutomationScan(caseId: string): Promise<void> {
       const topStructuringNeighbors = rankNeighborsByStructuringSignal(neighborMap, structuringBudget);
 
       const valueSet = new Set(topValueNeighbors);
-      const structuringOnlySet = new Set(topStructuringNeighbors.filter(addr => !valueSet.has(addr)));
+      const structuringOnlySet = new Set(topStructuringNeighbors.filter((addr: any) => !valueSet.has(addr)));
 
       const combinedNeighbors = [...topValueNeighbors, ...Array.from(structuringOnlySet)].slice(0, MAX_FANOUT);
 

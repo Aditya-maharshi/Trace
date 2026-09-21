@@ -144,7 +144,7 @@ export async function checkRateLimit(
         console.warn(JSON.stringify({
           event: "security_alert",
           type: "rate_limit_exceeded",
-          tier,
+          tier: 'paid',
           key,
           count,
           limit: maxReqs,

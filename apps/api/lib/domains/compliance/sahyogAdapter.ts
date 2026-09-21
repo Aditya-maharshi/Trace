@@ -1,5 +1,5 @@
 import { getSupabaseAdmin } from "../core/auditLog";
-import type { AttributionResponse, ScoredAttribution } from "../../../packages/shared-types";
+import type { AttributionResponse, ScoredAttribution } from "@sih/shared-types";
 
 export interface SahyogPayload {
   caseReference: string;

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
 import { getSupabaseAdmin } from "../../../../../lib/domains/core/auditLog";
 import { loadAttributionResult } from "../../../../../lib/domains/core/resultStore";
-import type { AttributionResponse, ScoredAttribution } from "../../../../../../../packages/shared-types";
+import type { AttributionResponse, ScoredAttribution } from "@sih/shared-types";
 
 function buildSummonsPdfStream(data: AttributionResponse, caseId: string): ReadableStream {
   return new ReadableStream({

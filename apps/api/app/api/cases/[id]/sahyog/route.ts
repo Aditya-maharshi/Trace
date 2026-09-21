@@ -71,6 +71,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json(result, { status: 200 });
   } catch (err: any) {
     console.error("[SAHYOG Dispatch Route] Error:", err);
-    return NextResponse.json({ error: .Internal Server Error. }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

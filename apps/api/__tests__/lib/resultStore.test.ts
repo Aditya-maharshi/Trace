@@ -5,7 +5,7 @@ import {
   resetInMemoryResultStore,
   isValidRequestId,
 } from "../../lib/domains/core/resultStore";
-import type { AttributionResponse } from "../../../../packages/shared-types";
+import type { AttributionResponse } from "@sih/shared-types";
 
 const sample: AttributionResponse = {
   wallet: "0xabc",

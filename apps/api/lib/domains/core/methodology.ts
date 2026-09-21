@@ -11,7 +11,7 @@
 
 import { CALIBRATION_METADATA } from "../tracing/attribution";
 import { buildVaspSet } from "../tracing/vaspLabels";
-import type { MethodologyDisclosure } from "../../../packages/shared-types";
+import type { MethodologyDisclosure } from "@sih/shared-types";
 
 /**
  * Returns the standardized methodology and limitations disclosure object.

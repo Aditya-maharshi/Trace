@@ -69,7 +69,7 @@ mcpServer.tool(
       }
 
       return {
-        content: [{ type: "text", text: JSON.stringify(data) }]
+        content: [{ type: "text", text: JSON.stringify(result) }]
       };
     } catch (e: any) {
       logError(e, { tool: "get_case", org_id });
