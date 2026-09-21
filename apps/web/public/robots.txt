@@ -6,4 +6,4 @@ Disallow: /history
 Disallow: /government
 Disallow: /cases
 
-Sitemap: https://trace.example.com/sitemap.xml
+Sitemap: https://trace.com/sitemap.xml

@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://trace.example.com/</loc>
+    <loc>https://trace.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://trace.example.com/commercial</loc>
+    <loc>https://trace.com/commercial</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://trace.example.com/methodology</loc>
+    <loc>https://trace.com/methodology</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://trace.example.com/login</loc>
+    <loc>https://trace.com/login</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://trace.example.com/signup</loc>
+    <loc>https://trace.com/signup</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
