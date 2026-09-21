@@ -179,7 +179,7 @@ function MethodologyPage() {
           {/* Calibration & Thresholds */}
           <section className="bg-white/[0.03] border border-white/10 rounded-xl p-6 md:p-7 space-y-4">
             <div className="flex items-center gap-3 text-cyan-400 font-semibold text-lg">
-              <Scale className="w-5 h-5 text-cyan-400 shrink-0" />
+              
               <h2>Empirical Calibration & Thresholds</h2>
             </div>
             <div className="grid sm:grid-cols-2 gap-4 text-sm">
@@ -204,7 +204,7 @@ function MethodologyPage() {
         {/* Bottom CTA Section */}
         <div className="bg-emerald-600 from-white/[0.04] to-transparent border border-white/10 rounded-xl p-8 text-center space-y-4 relative overflow-hidden">
           <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#f7931a]/10 border border-[#f7931a]/30 text-[#f7931a]">
-            <Sparkles className="w-5 h-5" />
+            
           </div>
           <h3 className="text-xl font-bold text-white font-serif">Run Live Wallet Attribution</h3>
           <p className="text-sm text-white/60 max-w-md mx-auto">

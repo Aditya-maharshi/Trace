@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CasesRouteImport } from './routes/cases'
 import { Route as CommercialRouteImport } from './routes/commercial'
 import { Route as MethodologyRouteImport } from './routes/methodology'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as CommercialIndexRouteImport } from './routes/commercial/index'
 import { Route as CommercialDashboardRouteImport } from './routes/commercial/dashboard'
 import { Route as CommercialLoginRouteImport } from './routes/commercial/login'
@@ -39,6 +41,16 @@ const CommercialRoute = CommercialRouteImport.update({
 const MethodologyRoute = MethodologyRouteImport.update({
   id: '/methodology',
   path: '/methodology',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CommercialIndexRoute = CommercialIndexRouteImport.update({
@@ -83,6 +95,8 @@ export interface FileRoutesByFullPath {
   '/cases': typeof CasesRoute
   '/commercial': typeof CommercialRouteWithChildren
   '/methodology': typeof MethodologyRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/commercial/dashboard': typeof CommercialDashboardRoute
   '/commercial/login': typeof CommercialLoginRoute
   '/commercial/signup': typeof CommercialSignupRoute
@@ -95,6 +109,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cases': typeof CasesRoute
   '/methodology': typeof MethodologyRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/commercial/dashboard': typeof CommercialDashboardRoute
   '/commercial/login': typeof CommercialLoginRoute
   '/commercial/signup': typeof CommercialSignupRoute
@@ -109,6 +125,8 @@ export interface FileRoutesById {
   '/cases': typeof CasesRoute
   '/commercial': typeof CommercialRouteWithChildren
   '/methodology': typeof MethodologyRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/commercial/dashboard': typeof CommercialDashboardRoute
   '/commercial/login': typeof CommercialLoginRoute
   '/commercial/signup': typeof CommercialSignupRoute
@@ -124,6 +142,8 @@ export interface FileRouteTypes {
     | '/cases'
     | '/commercial'
     | '/methodology'
+    | '/privacy'
+    | '/terms'
     | '/commercial/dashboard'
     | '/commercial/login'
     | '/commercial/signup'
@@ -136,6 +156,8 @@ export interface FileRouteTypes {
     | '/'
     | '/cases'
     | '/methodology'
+    | '/privacy'
+    | '/terms'
     | '/commercial/dashboard'
     | '/commercial/login'
     | '/commercial/signup'
@@ -149,6 +171,8 @@ export interface FileRouteTypes {
     | '/cases'
     | '/commercial'
     | '/methodology'
+    | '/privacy'
+    | '/terms'
     | '/commercial/dashboard'
     | '/commercial/login'
     | '/commercial/signup'
@@ -163,6 +187,8 @@ export interface RootRouteChildren {
   CasesRoute: typeof CasesRoute
   CommercialRoute: typeof CommercialRouteWithChildren
   MethodologyRoute: typeof MethodologyRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
   GovernmentDashboardRoute: typeof GovernmentDashboardRoute
   GovernmentIndexRoute: typeof GovernmentIndexRoute
   ApiPublicAttributeStreamRoute: typeof ApiPublicAttributeStreamRoute
@@ -196,6 +222,20 @@ declare module '@tanstack/react-router' {
       path: '/methodology'
       fullPath: '/methodology'
       preLoaderRoute: typeof MethodologyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/commercial/': {
@@ -273,6 +313,8 @@ const rootRouteChildren: RootRouteChildren = {
   CasesRoute: CasesRoute,
   CommercialRoute: CommercialRouteWithChildren,
   MethodologyRoute: MethodologyRoute,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
   GovernmentDashboardRoute: GovernmentDashboardRoute,
   GovernmentIndexRoute: GovernmentIndexRoute,
   ApiPublicAttributeStreamRoute: ApiPublicAttributeStreamRoute,
