@@ -491,6 +491,12 @@ export function AuthForm({ mode, config }: { mode: "signup" | "login"; config: T
               </div>
             )}
 
+            {isSignup && (
+              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginTop: 8, marginBottom: 8, lineHeight: 1.4 }}>
+                By signing up, you agree to our <Link to="/terms" style={{ textDecoration: 'underline' }}>Terms &amp; Conditions</Link> and acknowledge our <Link to="/privacy" style={{ textDecoration: 'underline' }}>Privacy Policy</Link>.
+              </p>
+            )}
+
             <button
               type="submit"
               id="submit-btn"

@@ -317,8 +317,10 @@ export function GovernmentLandingPage() {
       <a href="#statutory">Statutory output</a>
       <a href="#sovereignty">Data sovereignty</a>
       <a href="/government/dashboard">Console</a>
+      <Link to="/privacy">Privacy Policy</Link>
+      <Link to="/terms">Terms &amp; Conditions</Link>
     </div>
-    <div className="copyright">© 2026 Trace · Automated VASP Attribution · SIH 2026 Problem Statement 26182</div>
+    <div className="copyright">© {new Date().getFullYear()} Trace · Automated VASP Attribution · SIH 2026 Problem Statement 26182</div>
   </div>
 </footer>
     </div>

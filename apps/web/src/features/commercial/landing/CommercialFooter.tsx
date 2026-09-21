@@ -11,6 +11,8 @@ export function SharedFooter() {
           <a href="#portfolio">Trace Inspector</a>
           <a href="#how">How it works</a>
           <Link to="/methodology">Methodology</Link>
+          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/terms">Terms &amp; Conditions</Link>
         </div>
         <div className={styles.copyright}>© {new Date().getFullYear()} Trace · Blockchain Forensics</div>
       </div>
