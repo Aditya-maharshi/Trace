@@ -55,7 +55,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const scopesHeader = req.headers.get("x-tenant-scopes");
     if (scopesHeader) {
       try {
-        const scopes = JSON.parse(scopesHeader);
+        let scopes = []; try { scopes = JSON.parse(scopesHeader); } catch(e) {}
         if (!scopes.includes("investigator") && !scopes.includes("officer")) {
           return NextResponse.json({ error: "Forbidden: investigator or officer role required to draft legal instruments" }, { status: 403 });
         }

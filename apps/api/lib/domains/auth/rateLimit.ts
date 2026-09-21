@@ -61,7 +61,7 @@ export function resolveRateLimitIdentity(opts: {
   const userMax = Number(process.env.RATE_LIMIT_USER_MAX) || 60;
   const paidMax =
     Number(process.env.RATE_LIMIT_PAID_MAX) || Number(process.env.RATE_LIMIT_MAX) || 300;
-  const ip = opts.ip || "unknown";
+  const ip = (opts.ip || "unknown").replace(/:/g, "_");
 
   const isValidKey = Boolean(opts.presentedKey) && opts.validKeys.includes(opts.presentedKey);
   const isPublicKey =

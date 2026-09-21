@@ -29,7 +29,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (!caseRow) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
-    if (!assertCaseAccess(caseRow, userId, secureOrgId)) {
+    if (!assertCaseAccess(caseRow, userId, secureOrgId, guestToken)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       if (!caseRow) {
         return NextResponse.json({ error: 'Case not found' }, { status: 404 });
       }
-      if (!assertCaseAccess(caseRow, userId, secureOrgId)) {
+      if (!assertCaseAccess(caseRow, userId, secureOrgId, guestToken)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
@@ -136,7 +136,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     if (!caseRow) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
-    if (!assertCaseAccess(caseRow, userId, secureOrgId)) {
+    if (!assertCaseAccess(caseRow, userId, secureOrgId, guestToken)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
   }
