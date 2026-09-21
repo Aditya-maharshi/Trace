@@ -1,0 +1,20 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    { "name": "ETHERSCAN_API_KEY", "description": "Etherscan API key for live blockchain transaction data (https://etherscan.io/myapikey)", "requiredAtBoot": false },
+    { "name": "GEMINI_API_KEY", "description": "Google Gemini API key for AI compliance narration (https://aistudio.google.com/apikey)", "requiredAtBoot": false },
+    { "name": "GROQ_API_KEY", "description": "Groq API key for AI narration fallback (https://console.groq.com/keys)", "requiredAtBoot": false },
+    { "name": "XAI_API_KEY", "description": "xAI (Grok) API key for AI narration (xAI console)", "requiredAtBoot": false },
+    { "name": "OPENSANCTIONS_API_KEY", "description": "OpenSanctions API key for sanctions screening (https://api.opensanctions.org)", "requiredAtBoot": false },
+    { "name": "BLOCKSCOUT_API_KEY", "description": "Blockscout API key for fallback blockchain data", "requiredAtBoot": false },
+    { "name": "SUPABASE_URL", "description": "Supabase project URL (Supabase dashboard > Project Settings > API)", "requiredAtBoot": false },
+    { "name": "SUPABASE_ANON_KEY", "description": "Supabase anon/publishable key (Supabase dashboard > Project Settings > API)", "requiredAtBoot": false },
+    { "name": "SUPABASE_SERVICE_ROLE_KEY", "description": "Supabase service role key for server-side operations (Supabase dashboard > Project Settings > API)", "requiredAtBoot": false },
+    { "name": "UPSTASH_REDIS_REST_URL", "description": "Upstash Redis REST URL for distributed rate limiting (Upstash console)", "requiredAtBoot": false },
+    { "name": "UPSTASH_REDIS_REST_TOKEN", "description": "Upstash Redis REST token (Upstash console)", "requiredAtBoot": false },
+    { "name": "BINANCE_API_KEY", "description": "Binance API key for crypto price data (Binance API Management)", "requiredAtBoot": false },
+    { "name": "EXTERNAL_CHATBOT_API_KEY", "description": "External chatbot API key", "requiredAtBoot": false }
+  ]
+}

@@ -1,0 +1,74 @@
+services:
+  # One-shot dependency install for the entire monorepo (npm workspaces).
+  install:
+    image: node:22
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: npm install --no-audit --no-fund
+    restart: "no"
+
+  # Next.js 16 backend API — separate origin on host port 8000.
+  api:
+    image: node:22
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "cd apps/api && npm run dev -- -p 3000 -H 0.0.0.0"
+    ports:
+      - "8000:3000"
+    environment:
+      - NODE_ENV=development
+      - DEMO_MODE=true
+      - API_KEYS=changeme-key-1
+      - PUBLIC_API_KEYS=changeme-key-1
+      - FRONTEND_URL=https://3000-${BASE44_PUBLIC_HOST_SUFFIX}
+      - BASE44_PUBLIC_HOST_SUFFIX
+      - IP_HASH_SALT=base44-dev-ip-hash-salt-9f3a
+      - RATE_LIMIT_GUEST_MAX=100
+      - RATE_LIMIT_USER_MAX=200
+      - RATE_LIMIT_PAID_MAX=500
+      - RATE_LIMIT_WINDOW_MS=60000
+      - OPENSANCTIONS_BASE_URL=https://api.opensanctions.org
+      - BLOCKSCOUT_BASE_URL=https://eth.blockscout.com/api
+    env_file:
+      - ./.env.base44-defaults
+      - /run/base44/app.env
+    depends_on:
+      install:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/config').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  # Vite + TanStack Start frontend — user-facing entry on host port 3000.
+  web:
+    image: node:22
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "cd apps/web && npm run dev -- --host 0.0.0.0 --port 8083"
+    ports:
+      - "3000:8083"
+    environment:
+      - VITE_API_URL=https://8000-${BASE44_PUBLIC_HOST_SUFFIX}
+      - VITE_API_KEY=changeme-key-1
+      - BASE44_PUBLIC_HOST_SUFFIX
+      - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS
+    env_file:
+      - ./.env.base44-defaults
+      - /run/base44/app.env
+    depends_on:
+      install:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8083/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 50s
