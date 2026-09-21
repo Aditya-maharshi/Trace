@@ -19,8 +19,8 @@
  */
 
 @theme inline {
-  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Space Grotesk", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Georgia", ui-serif, serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -70,7 +70,7 @@
 }
 
 :root {
-  --radius: 0.875rem;
+  --radius: 0.5rem;
   /* Force dark mode — always dark */
   --background: oklch(0.09 0.015 265);
   --foreground: oklch(0.96 0.005 250);
@@ -205,7 +205,7 @@
     --red: #ff5c7a;
     --text: #f2f2f7;
     --text-dim: #9a9aab;
-    --text-faint: #5c5c6c;
+    --text-faint: #8b8b9c;
   }
   *{ box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -213,7 +213,7 @@
     margin:0;
     background: var(--bg);
     color: var(--text);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
@@ -354,7 +354,7 @@
     display: flex; align-items: center; gap: 8px;
   }
   .hero-ticker .t-item .sym{
-    font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700;
+    font-family: var(--font-sans); font-size: 12px; font-weight: 700;
     color: var(--text-dim); letter-spacing: 0.04em;
   }
   .hero-ticker .t-item .val{
@@ -398,14 +398,14 @@
     border-radius: 12px;
     padding: 14px 18px; min-width: 180px;
     opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease;
-    box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.8), 0 0 24px rgba(247, 147, 26, 0.12);
+    box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.8);
   }
   #coin-info.visible{ opacity: 1; transform: translate(-50%, -125%); }
   #coin-info .ci-header{
     display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;
   }
   #coin-info .ci-name{
-    font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 600; color: #ffffff;
+    font-family: var(--font-sans); font-size: 14px; font-weight: 600; color: #ffffff;
   }
   #coin-info .ci-sym{
     font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;

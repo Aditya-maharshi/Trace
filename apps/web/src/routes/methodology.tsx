@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, ShieldCheck, Database, GitFork, AlertTriangle, Layers, Scale, ExternalLink, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, ShieldCheck, Database, GitFork, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/methodology")({
   head: () => ({
@@ -75,7 +75,7 @@ function MethodologyPage() {
             </span>
             <Link
               to={"/dashboard" as any}
-              className="inline-flex items-center gap-1.5 bg-emerald-600 from-[#f7931a] to-[#ffaa40] text-[#08080c] text-xs font-bold px-4 py-2 rounded-lg shadow-[0_0_15px_rgba(247,147,26,0.35)] hover:shadow-[0_0_22px_rgba(247,147,26,0.6)] hover:from-[#ffaa40] hover:to-[#f7931a] transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 bg-[#f7931a] text-black text-xs font-bold px-4 py-2 rounded-md hover:bg-[#e07a05] transition-colors"
             >
               <span>Launch Engine</span>
               <ArrowRight className="w-3.5 h-3.5" />

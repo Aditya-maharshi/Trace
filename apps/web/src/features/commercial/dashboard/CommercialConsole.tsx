@@ -13,6 +13,9 @@ import {
 } from "@/lib/api";
 import { ETH_ADDRESS_RE, truncateAddress } from "@/lib/types";
 import { AttributionGraph } from "./components/AttributionGraph";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ExternalLink, Sparkles, Check, Database, GitFork, AlertTriangle, Layers, Map } from "lucide-react";
 import { BfsProgressFeed } from "./components/BfsProgressFeed";
 import "./trace-console.css";
 
@@ -476,7 +479,9 @@ export function CommercialConsole({
               <p className="hint">Live BFS attribution against the Trace API. Ethereum only in this prototype.</p>
               {error && <p className="err">{error}</p>}
               {loading && !data && (
-                <div style={{ marginTop: 18 }}>
+                <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <Skeleton className="h-[120px] w-full" />
+                  <Skeleton className="h-[250px] w-full" />
                   <BfsProgressFeed messages={progressLog} />
                 </div>
               )}
