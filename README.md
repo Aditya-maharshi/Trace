@@ -10,6 +10,10 @@ This monorepo contains two primary applications:
 - **`apps/web`**: Modern Vite + React frontend dashboard featuring interactive canvas graph visualizations, live BFS streaming progress feeds, audit history, and real-time chat with trace evidence citations.
 - **`packages/shared-types`**: Shared TypeScript definitions and data interfaces common to both frontend and backend.
 
+## Privacy & Telemetry Design
+
+As an investigative and law-enforcement tool, Trace is designed for strict data sovereignty. **Client-side analytics trackers (Google Analytics, Segment, Plausible, etc.) are deliberately excluded.** No non-essential cookies are set, which guarantees compliance with GDPR and DPDP data collection limits without requiring intrusive cookie consent banners. All audit trails (e.g. `lookups`, `case_history`) are securely maintained server-side.
+
 ## Local Setup & Installation
 
 ### Prerequisites
