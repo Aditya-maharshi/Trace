@@ -12,7 +12,7 @@ export function SharedFooter() {
           <a href="#how">How it works</a>
           <Link to="/methodology">Methodology</Link>
         </div>
-        <div className={styles.copyright}>© 2026 Trace · Blockchain Forensics</div>
+        <div className={styles.copyright}>© {new Date().getFullYear()} Trace · Blockchain Forensics</div>
       </div>
     </footer>
   );
