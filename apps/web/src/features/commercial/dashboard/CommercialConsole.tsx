@@ -248,10 +248,10 @@ export function CommercialConsole({
 
   function runScreen(e?: React.FormEvent) {
     e?.preventDefault();
-    const addr = address.trim();
-    if (!ETH_ADDRESS_RE.test(addr)) return;
+    const cleanAddr = address.trim();
+    if (!ETH_ADDRESS_RE.test(cleanAddr)) return;
     setPage("screen");
-    lookup(addr);
+    lookup(cleanAddr);
   }
 
   async function onExport(format: "pdf" | "csv") {

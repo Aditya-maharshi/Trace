@@ -321,11 +321,21 @@ async function fetchAccountEndpoint<T>(
         throw new Error(`${providerName} HTTP ${res.status}: ${res.statusText}`);
       }
 
-      const json = (await res.json()) as {
+      let json: {
         status?: string;
         message?: string;
         result?: T[] | string;
       };
+      
+      try {
+        json = (await res.json()) as {
+          status?: string;
+          message?: string;
+          result?: T[] | string;
+        };
+      } catch (e) {
+        throw new Error(`${providerName} returned invalid JSON. Possible block/Cloudflare error.`);
+      }
 
       if (typeof json.result === "string") {
         const lower = json.result.toLowerCase();

@@ -136,13 +136,7 @@ export async function buildAttributionResponse(
     hopIndex,
   }));
 
-  const dynamicMixerExposure = m.mixerExposures.map((m) => ({
-    address: m.address,
-    label: "Unlabelled Mixer (Collaborative Spend)",
-    hopIndex: m.hopIndex,
-  }));
-
-  const mixerExposure = [...staticMixerExposure, ...dynamicMixerExposure];
+  const mixerExposure = staticMixerExposure;
 
   // ── Sanctions + ENS in parallel ───────────────────────────────────────────
   const winningPath = best.paths[0]?.path ?? [];

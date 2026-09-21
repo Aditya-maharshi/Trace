@@ -275,7 +275,12 @@ export async function checkSanctionedDetailed(
       );
     }
 
-    const data = (await res.json()) as OpenSanctionsResponse;
+    let data: OpenSanctionsResponse;
+    try {
+      data = (await res.json()) as OpenSanctionsResponse;
+    } catch (e) {
+      throw new Error(`OpenSanctions returned invalid JSON. Possible block/Cloudflare error.`);
+    }
 
     // 4. Build result
     const result: SanctionsCheckResult = {

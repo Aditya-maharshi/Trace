@@ -734,7 +734,13 @@ export async function buildGraphVisualizationPayload(pathResults: { path: string
       let type: "wallet" | "vasp" | "mixer" | "bridge" | "sanctioned" = "wallet";
       let label: string | undefined = undefined;
 
-      const isSanc = await checkSanctioned(addr);
+      let isSanc = false;
+      try {
+        isSanc = await checkSanctioned(addr);
+      } catch (err) {
+        // Ignore sanctions errors for graph visualization
+      }
+      
       if (isSanc) {
         type = "sanctioned";
       } else if (labelForVasp(addr)) {
