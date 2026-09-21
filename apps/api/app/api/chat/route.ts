@@ -39,7 +39,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-    const apiKey = process.env.EXTERNAL_CHATBOT_API_KEY || "mock-key";
+    const apiKey = process.env.EXTERNAL_CHATBOT_API_KEY;
+    if (!apiKey) {
+      throw new Error("EXTERNAL_CHATBOT_API_KEY is not set. Failing fast to prevent data leakage.");
+    }
     const externalApiUrl = "https://api.adityabot.com/v1/chat";
 
     const response = await fetch(externalApiUrl, {
