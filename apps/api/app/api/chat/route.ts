@@ -59,9 +59,11 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     if (response.ok) {
       const data = await response.json();
-      return new Response(JSON.stringify({ reply: data.reply || data.answer || "No response received." }), {
+      const reply = data.reply || data.answer || "No response received.";
+      const sse = `event: token\ndata: ${JSON.stringify({ token: reply })}\n\n`;
+      return new Response(sse, {
         status: 200,
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "Connection": "keep-alive" }
       });
     }
 
@@ -72,9 +74,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     const c = context as any;
     const fallbackReply = `(Fallback) Regarding wallet ${c?.wallet}, the nearest VASP is ${c?.nearestVaspLabel || 'Unknown'} at ${c?.hops} hops. The risk level is ${c?.risk}. Please verify manually as the AI service is unavailable.`;
     
-    return new Response(JSON.stringify({ reply: fallbackReply }), {
+    const sse = `event: token\ndata: ${JSON.stringify({ token: fallbackReply })}\n\n`;
+    return new Response(sse, {
       status: 200,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "Connection": "keep-alive" }
     });
   }
 }
