@@ -11,7 +11,7 @@ We take the security of Trace seriously. If you believe you have found a securit
 **Please do not report security vulnerabilities through public GitHub issues.**
 
 Instead, please report them to our security team via email at:
-**security@example.com**
+**security@trace.com**
 
 You should receive a response within 48 hours. If the issue is confirmed, we will release a patch as soon as possible depending on complexity.
 
