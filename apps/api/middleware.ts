@@ -71,7 +71,7 @@ export async function middleware(request: NextRequest) {
     
     // S-12: Mandatory M2M Bearer token check
     if (!mcpSecret || (authHeaderMcp !== `Bearer ${mcpSecret}` && authHeaderMcp !== mcpSecret)) {
-      return NextResponse.json({ error: "Unauthorized MCP access" }, { status: 401, headers: corsHeaders });
+      return withSecurityHeaders(NextResponse.json({ error: "Unauthorized MCP access" }, { status: 401, headers: corsHeaders }));
     }
 
     // S-11: Strict host validation
@@ -79,7 +79,7 @@ export async function middleware(request: NextRequest) {
     if (allowedHost) {
       const host = request.headers.get("host") || "";
       if (host !== allowedHost) {
-        return NextResponse.json({ error: "Host not allowed for MCP" }, { status: 403, headers: corsHeaders });
+        return withSecurityHeaders(NextResponse.json({ error: "Host not allowed for MCP" }, { status: 403, headers: corsHeaders }));
       }
     }
   }
