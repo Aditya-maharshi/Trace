@@ -107,7 +107,15 @@ export async function middleware(request: NextRequest) {
 
     if (!presentedKey) {
         // Fall back to guest session / early JWT check if applicable
-        const earlyUserId = await extractVerifiedUserIdAsync(authHeader || "");
+        let earlyUserId = null;
+        try {
+          earlyUserId = await extractVerifiedUserIdAsync(authHeader || "");
+        } catch (err) {
+          return NextResponse.json(
+            { error: "Unauthorized. Invalid JWT or missing secret." },
+            { status: 401, headers: corsHeaders }
+          );
+        }
         const isDemoMode = process.env.DEMO_MODE === "true";
         if (!earlyUserId && !isDemoMode) {
           console.warn(JSON.stringify({

@@ -210,6 +210,7 @@ function renderReport(data: AttributionResponse, format: string): NextResponse {
 }
 
 async function handleReport(req: Request): Promise<NextResponse> {
+  try {
     const url = new URL(req.url);
     const format = url.searchParams.get("format") || "pdf";
     const resolved = await resolveStoredResult(req);
@@ -218,8 +219,9 @@ async function handleReport(req: Request): Promise<NextResponse> {
     }
     return renderReport(resolved, format);
   } catch (err: any) {
+    console.error("Report route error:", err);
     return NextResponse.json(
-      { error: err.message },
+      { error: "An internal server error occurred while generating the report." },
       {
         status: 500,
       },

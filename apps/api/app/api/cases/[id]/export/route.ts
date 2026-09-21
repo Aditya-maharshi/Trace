@@ -117,6 +117,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     });
   } catch (err: any) {
     console.error(`[POST /api/cases/${params.id}/export] Error:`, err);
-    return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: .Internal Server Error. }, { status: 500 });
   }
 }
