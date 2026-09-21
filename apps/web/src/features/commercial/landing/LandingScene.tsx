@@ -425,14 +425,14 @@ export function LandingScene({ onSelectNode, prices }: LandingSceneProps) {
       const dt = Math.min((now - lastTime) / 1000, 0.1);
       lastTime = now;
 
-      // Orbit node updates (static positioning)
+      // Orbit node updates
       nodeObjects.forEach((c) => {
-        // c.angle += c.def.speed * dt; // Removed orbiting
+        c.angle += c.def.speed * dt;
         const x = Math.cos(c.angle) * c.def.orbitR;
         const z = Math.sin(c.angle) * c.def.orbitR;
-        const y = 0; // Removed bobbing
+        const y = Math.sin(now / 400 + c.def.phase) * 0.15;
         c.coinGroup.position.set(x, y, z);
-        // c.mesh.rotation.z += 0.8 * dt; // Removed spinning
+        c.mesh.rotation.z += 0.8 * dt;
 
         // Smooth scale interpolation
         c.curScale += (c.targetScale - c.curScale) * 0.12;

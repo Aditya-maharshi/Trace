@@ -12,7 +12,7 @@
  *   event: error     data: { "message": "..." }
  */
 
-import { NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 
 export async function POST(req: NextRequest): Promise<Response> {
   let body: { question?: string; context?: unknown };
