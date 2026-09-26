@@ -80,10 +80,9 @@ function resolveEncryptionKey(): Buffer {
   return _resolvedKey;
 }
 
-// Validate at module load time in production so startup failure is immediate
-if (process.env.NODE_ENV === "production") {
-  resolveEncryptionKey();
-}
+// We do NOT validate at module load time because Next.js evaluates modules during
+// the build step (next build), where runtime secrets like ENCRYPTION_KEY may not
+// yet be injected. It will fail on first use instead.
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Encrypted envelope shape
