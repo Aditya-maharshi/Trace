@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractVerifiedUserIdAsync } from '../../../../../lib/domains/auth/verifyJwt';
-import { assertCaseAccess } from '../../../lib/domains/cases/caseStore';
+import { assertCaseAccess } from '../../../../../lib/domains/cases/caseStore';
 import { pinEvidence } from '../../../../../lib/domains/cases/caseStore';
 import { withApiVersionHeaders } from '../../../../../lib/domains/core/apiVersion';
 import { getSupabaseAdmin , getSupabaseUserClient } from '../../../../../lib/domains/core/auditLog';

@@ -43,3 +43,12 @@ coverage/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Archives and Keys
+*.zip
+*.pem
+*.key
+
+# Uploads/Scratch
+uploads/
+scratch/

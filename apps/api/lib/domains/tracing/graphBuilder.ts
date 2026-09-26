@@ -439,6 +439,7 @@ export async function findNearestVASP(
     return Object.assign(results, {
       bridgeExitPoints,
       traceExitedToBridge: bridgeExitPoints.length > 0,
+      mixerExposures: [],
       incompleteTraversal: {
         skippedNodes: skippedAddresses.length,
         skippedAddresses,

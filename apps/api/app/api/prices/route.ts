@@ -21,6 +21,7 @@ export async function GET() {
         headers: {
           ...(BINANCE_API_KEY ? { "X-MBX-APIKEY": BINANCE_API_KEY } : {}),
         },
+        // @ts-expect-error: Next.js fetch extension
         next: { revalidate: 30 },
       }
     );
@@ -41,7 +42,10 @@ export async function GET() {
   try {
     const res = await fetch(
       `https://api.binance.us/api/v3/ticker/24hr?symbols=${encodedSymbols}`,
-      { next: { revalidate: 30 } }
+      {
+        // @ts-expect-error: Next.js fetch extension
+        next: { revalidate: 30 }
+      }
     );
 
     if (res.ok) {
@@ -60,7 +64,10 @@ export async function GET() {
   try {
     const res = await fetch(
       "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd&include_24hr_change=true",
-      { next: { revalidate: 30 } }
+      {
+        // @ts-expect-error: Next.js fetch extension
+        next: { revalidate: 30 }
+      }
     );
 
     if (res.ok) {

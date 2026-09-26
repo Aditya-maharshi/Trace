@@ -197,25 +197,29 @@ async function runTraceJob(
 
     // Audit trail in generated_documents table
     for (const [docKey, doc] of Object.entries(docs)) {
-      await client.from("generated_documents").insert({
-        job_id: jobId,
-        case_reference: input.caseReference,
-        doc_type: doc.documentType,
-        content_hash: doc.contentHash,
-        generated_by: userId ?? "system",
-        metadata: { docKey },
-      }).catch((e: any) => {
+      try {
+        await client.from("generated_documents").insert({
+          job_id: jobId,
+          case_reference: input.caseReference,
+          doc_type: doc.documentType,
+          content_hash: doc.contentHash,
+          generated_by: userId ?? "system",
+          metadata: { docKey },
+        });
+      } catch (e: any) {
         console.warn(`[sahyog/intake] Failed to record generated_document for ${docKey}:`, e.message);
-      });
+      }
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`[sahyog/intake] Job ${jobId} failed:`, msg);
-    await client.from("sahyog_trace_jobs").update({
-      status: "failed",
-      error_message: msg,
-      updated_at: new Date().toISOString(),
-    }).eq("id", jobId).catch(() => {});
+    try {
+      await client.from("sahyog_trace_jobs").update({
+        status: "failed",
+        error_message: msg,
+        updated_at: new Date().toISOString(),
+      }).eq("id", jobId);
+    } catch {}
   }
 }
 

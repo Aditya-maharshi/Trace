@@ -33,6 +33,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "../../../../../lib/domains/core/auditLog";
 import {
   StubSahyogAdapter,
+  SahyogAdapter,
   compileSahyogPayload,
 } from "../../../../../lib/domains/compliance/sahyogAdapter";
 import { extractVerifiedUserIdAsync } from "../../../../../lib/domains/auth/verifyJwt";
@@ -106,7 +107,7 @@ export async function POST(
   try {
     // Adapter selection: swap StubSahyogAdapter → LiveSahyogAdapter when
     // real SAHYOG portal credentials are available.
-    const adapter = new StubSahyogAdapter();
+    const adapter: SahyogAdapter = new StubSahyogAdapter();
     transmissionResult = await adapter.dispatchRequest(payloadToSubmit);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -144,8 +145,7 @@ export async function POST(
         referenceId: transmissionResult.referenceId,
         sahyogPayloadHash: sahyogPayload?.contentHash,
       },
-    })
-    .catch(() => {}); // Non-fatal — case may not exist in case_history
+    }); // Non-fatal — case may not exist in case_history
 
   return NextResponse.json({
     jobId: caseId,

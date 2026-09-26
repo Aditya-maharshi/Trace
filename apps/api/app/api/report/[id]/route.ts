@@ -25,10 +25,10 @@
  * Uses pdfkit (already in dependencies: "pdfkit": "^0.20.2").
  */
 
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import PDFDocument from "pdfkit";
-import { loadAttributionResult, isValidRequestId } from "../../../lib/domains/core/resultStore";
-import { generateAllDocuments, computeEvidenceHash } from "../../../lib/domains/compliance/documentGenerator";
+import { loadAttributionResult, isValidRequestId } from "../../../../lib/domains/core/resultStore";
+import { generateAllDocuments, computeEvidenceHash } from "../../../../lib/domains/compliance/documentGenerator";
 import crypto from "crypto";
 
 export const maxDuration = 30;

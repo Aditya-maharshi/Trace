@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
   const apiContext = authResult.context;
   
-  const transport = new SSEServerTransport("/api/mcp", req.nextUrl.origin);
+  const transport = new SSEServerTransport("/api/mcp", req.nextUrl.origin as any);
   const sessionId = crypto.randomUUID();
   transports.set(sessionId, transport);
   

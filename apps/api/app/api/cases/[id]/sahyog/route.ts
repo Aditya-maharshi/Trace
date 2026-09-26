@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "../../../../../lib/domains/core/auditLog";
+import { getSupabaseAdmin, getSupabaseUserClient } from "../../../../../lib/domains/core/auditLog";
 import { loadAttributionResult } from "../../../../../lib/domains/core/resultStore";
 import { computePayloadHash } from "../../../../../lib/domains/cases/caseStore";
 import { compileSahyogPayload, StubSahyogAdapter } from "../../../../../lib/domains/compliance/sahyogAdapter";

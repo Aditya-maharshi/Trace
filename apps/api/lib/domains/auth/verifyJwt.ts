@@ -81,8 +81,8 @@ export async function extractVerifiedUserIdAsync(authHeader: string): Promise<st
     const isValid = await crypto.subtle.verify(
       "HMAC",
       cryptoKey,
-      expectedSig,
-      signatureInput,
+      expectedSig as any,
+      signatureInput as any,
     );
 
     if (!isValid) {

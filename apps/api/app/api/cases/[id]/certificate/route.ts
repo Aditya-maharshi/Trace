@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
-import { getSupabaseAdmin } from "../../../../../lib/domains/core/auditLog";
+import { getSupabaseAdmin, getSupabaseUserClient } from "../../../../../lib/domains/core/auditLog";
 import { loadAttributionResult } from "../../../../../lib/domains/core/resultStore";
 import { computePayloadHash } from "../../../../../lib/domains/cases/caseStore";
 import type { AttributionResponse } from "@sih/shared-types";
