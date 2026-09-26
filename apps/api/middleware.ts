@@ -25,12 +25,17 @@ export async function middleware(request: any) {
   // ── CORS origin resolution ────────────────────────────────────────────────
   // In production, FRONTEND_URL must be set — no wildcard fallback.
   // In dev, fall back to "*" for convenience.
-  const configuredOrigin = process.env.FRONTEND_URL || "";
+  const configuredOriginStr = process.env.FRONTEND_URL || "";
+  const configuredOrigins = configuredOriginStr.split(",").map(s => s.trim()).filter(Boolean);
   let responseOrigin: string;
 
-  if (configuredOrigin) {
-    // Only allow the exact configured origin (strict match)
-    responseOrigin = origin === configuredOrigin ? configuredOrigin : "";
+  if (configuredOrigins.length > 0) {
+    // Allow if it exactly matches one of the configured origins, OR if it's a Vercel preview deployment
+    if (configuredOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+      responseOrigin = origin;
+    } else {
+      responseOrigin = "";
+    }
   } else if (isProduction) {
     // Production with no FRONTEND_URL — block cross-origin browser requests
     console.error(
