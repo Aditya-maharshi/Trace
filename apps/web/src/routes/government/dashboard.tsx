@@ -24,7 +24,7 @@ function GovernmentDashboardAuthGuard() {
       // 1. Auth check
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        navigate({ to: "/login" as any, search: { redirect: "/government" } as any });
+        navigate({ to: "/commercial/login" as any, search: { redirect: "/government" } as any });
         return;
       }
 

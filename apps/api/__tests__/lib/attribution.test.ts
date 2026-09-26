@@ -112,7 +112,7 @@ describe("scorePath", () => {
       path: ["0xabc", "0xdef", "0xvasp"],
       nearestVASP: "0xvasp",
     };
-    expect(scorePath(path, [])).toBe(0);
+    expect(scorePath(path, new Map())).toBe(0);
   });
 
   it("computes correct score for a known fixture", () => {

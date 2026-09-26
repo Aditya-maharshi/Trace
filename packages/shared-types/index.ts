@@ -1,3 +1,56 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Chain types (Phase 1 additions)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type SupportedChain =
+  | "ethereum"
+  | "bitcoin"
+  | "tron"
+  | "bnbchain"
+  | "solana"
+  | "polygon";
+
+export interface TraceParams {
+  maxHops: number;
+  maxBranchesPerHop: number;
+  chain: SupportedChain;
+  startedAt: string;
+}
+
+/**
+ * Represents a point in a trace where funds crossed chains via a bridge.
+ */
+export interface CrossChainHop {
+  fromChain: SupportedChain;
+  toChain: SupportedChain;
+  bridgeAddress: string;
+  bridgeLabel: string;
+  exitTxHash: string;
+  pathIndex: number;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Risk typology types (Phase 6 additions)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type RiskTypologyName =
+  | "peeling_chain"
+  | "smurfing"
+  | "mixer_proximity"
+  | "sanctioned_proximity"
+  | "ransomware_pattern";
+
+export interface RiskTypology {
+  /** Named typology, tied to a real-world FATF/FinCEN pattern. */
+  name: RiskTypologyName;
+  /** Human-readable description of why this flag was triggered. */
+  description: string;
+  /** Severity level. */
+  severity: "HIGH" | "MEDIUM" | "LOW";
+  /** Supporting evidence from the trace (addresses / hop indices). */
+  evidence: string[];
+}
+
 export interface ScoreBreakdown {
   hops: number;
   totalValueUSD: number;
@@ -101,6 +154,18 @@ export interface AttributionResponse {
     edges: Array<{ source: string; target: string; hopIndex: number; valueUSD: number; asset: string; timestamp: string }>;
     truncated: boolean;
   };
+  // ── Phase 1 additions — chain-aware tracing — all optional for backwards compat —
+  /** The chain this trace was performed on. Defaults to "ethereum" for pre-Phase-1 results. */
+  chain?: SupportedChain;
+  /** Parameters used for this trace run (for auditability). */
+  traceParams?: TraceParams;
+  /** ISO 8601 timestamp of when the trace result was generated. */
+  generatedAt?: string;
+  /** Cross-chain bridge/swap hops detected during traversal (Phase 2). */
+  crossChainHops?: CrossChainHop[];
+  // ── Phase 6 additions — risk typologies —
+  /** Risk typologies detected in this trace. Empty array if none detected. */
+  riskTypologies?: RiskTypology[];
 }
 
 export interface NarrateResponse {

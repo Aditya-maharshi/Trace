@@ -584,7 +584,7 @@ export function RootLanding() {
                   </span>
                 </Link>
 
-                <Link className="path-card business reveal" to="/dashboard">
+                <Link className="path-card business reveal" to="/commercial/dashboard">
                   <div className="path-icon" aria-hidden="true">
                     <svg
                       viewBox="0 0 24 24"

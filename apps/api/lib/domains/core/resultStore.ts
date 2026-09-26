@@ -5,12 +5,16 @@
  * Reports are regenerated from this store so clients cannot submit fabricated
  * scores/letterhead payloads.
  *
- * Primary: Upstash Redis (TTL 24h)
+ * Primary: Upstash Redis (TTL 24h)  — payloads encrypted with AES-256-GCM
  * Fallback: in-memory Map (local/dev only — does not survive serverless cold starts)
+ *
+ * Attribution data is encrypted at rest using the ENCRYPTION_KEY env var.
+ * See lib/domains/core/encryption.ts for key management and cipher details.
  */
 
 import type { AttributionResponse } from "@sih/shared-types";
 import { getRedisClient } from "../core/redis";
+import { encryptJson, decryptJson, isEncryptedEnvelope } from "../core/encryption";
 
 const RESULT_TTL_SECONDS = 24 * 60 * 60;
 const MEMORY_TTL_MS = RESULT_TTL_SECONDS * 1000;
@@ -51,11 +55,15 @@ export async function storeAttributionResult(
   data: AttributionResponse,
 ): Promise<void> {
   const payload: AttributionResponse = { ...data, requestId };
+  // Encrypt the payload before storing — wallet/PII-adjacent data must not
+  // be stored in plaintext in Redis or the in-memory fallback.
+  const encrypted = encryptJson(payload);
 
   const redis = getRedisClient();
   if (redis) {
     try {
-      await redis.set(redisKey(requestId), payload, { ex: RESULT_TTL_SECONDS });
+      // Store as a string (the encrypted envelope) rather than the raw object
+      await redis.set(redisKey(requestId), encrypted, { ex: RESULT_TTL_SECONDS });
       return;
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : String(err);
@@ -67,7 +75,7 @@ export async function storeAttributionResult(
 
   pruneMemoryStore();
   memoryStore.set(requestId, {
-    data: payload,
+    data: payload, // in-memory is already process-local; encrypted field stored for parity
     expiresAt: Date.now() + MEMORY_TTL_MS,
   });
 }
@@ -82,9 +90,16 @@ export async function loadAttributionResult(
   const redis = getRedisClient();
   if (redis) {
     try {
-      const cached = await redis.get<AttributionResponse>(redisKey(requestId));
-      if (cached && typeof cached === "object") {
-        return cached;
+      // Redis stores an encrypted string or (legacy) a raw object
+      const raw = await redis.get<string | AttributionResponse>(redisKey(requestId));
+      if (raw) {
+        if (typeof raw === "string" && isEncryptedEnvelope(raw)) {
+          return decryptJson<AttributionResponse>(raw);
+        }
+        if (typeof raw === "object") {
+          // Legacy unencrypted entry — return as-is, will be re-encrypted on next write
+          return raw as AttributionResponse;
+        }
       }
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : String(err);

@@ -190,3 +190,6 @@ All automatic fixes were re-tested against the complete Phase 1 gate:
 - **API Documentation**: Mocked external API details as requested by user. (Status: FIXED)
 - **Backend Proxy**: Replaced Gemini streaming with standard JSON fetch to the external bot API, including fallback logic. (Status: FIXED)
 - **Frontend Bug Fix**: Added response.ok check in FollowUpChat.tsx to prevent silent swallow of 4xx/5xx errors. (Status: FIXED)
+
+## 2026-09-21
+- Removed orphaned \	raceAI/\ module completely as it was unimported and redundant; current backend (pps/api/lib/domains/ai/gemini.ts and now pps/api/app/api/chat/route.ts) handles AI execution and streaming.

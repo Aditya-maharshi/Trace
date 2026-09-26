@@ -4,7 +4,7 @@ import { listCases, createCase } from '../../../lib/domains/cases/caseStore';
 import { withApiVersionHeaders } from '../../../lib/domains/core/apiVersion';
 import { CaseStatus } from '@sih/shared-types';
 
-export async function GET(req: NextRequest) {
+export async function GET(req: any) {
   const authHeader = req.headers.get('authorization') || '';
   const userId = await extractVerifiedUserIdAsync(authHeader);
 
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: any) {
   const authHeader = req.headers.get('authorization') || '';
   const userId = await extractVerifiedUserIdAsync(authHeader);
 

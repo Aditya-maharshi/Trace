@@ -7,7 +7,18 @@ import { canonicalApiPath, withApiVersionHeaders } from "./lib/domains/core/apiV
 // ---------------------------------------------------------------------------
 // Middleware
 // ---------------------------------------------------------------------------
-export async function middleware(request: NextRequest) {
+
+function withSecurityHeaders(response: any) {
+  response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: wss:; font-src 'self' data:; frame-ancestors 'none';");
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  return response;
+}
+
+export async function middleware(request: any) {
   const origin = request.headers.get("origin") || "";
   const isProduction = process.env.NODE_ENV === "production";
 
@@ -169,33 +180,36 @@ export async function middleware(request: NextRequest) {
     request.headers.get("x-real-ip") ||
     "unknown";
   
-  // If we have an API context (multi-tenant), use that for rate limit identity
-  const identityKey = apiContext ? `org:${apiContext.org_id}` : `guest:${ip}`;
-  const maxReqs = apiContext ? (Number(process.env.RATE_LIMIT_PAID_MAX) || 300) : (Number(process.env.RATE_LIMIT_GUEST_MAX) || 30);
-  const windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS) || 60_000;
+  // Skip rate limiting in middleware for SSE routes to prevent buffering
+  if (apiPath !== "/api/chat" && apiPath !== "/api/attribute-stream") {
+    // If we have an API context (multi-tenant), use that for rate limit identity
+    const identityKey = apiContext ? `org:${apiContext.org_id}` : `guest:${ip}`;
+    const maxReqs = apiContext ? (Number(process.env.RATE_LIMIT_PAID_MAX) || 300) : (Number(process.env.RATE_LIMIT_GUEST_MAX) || 30);
+    const windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS) || 60_000;
 
-  const rateLimitResponse = await checkRateLimit(
-    identityKey,
-    maxReqs,
-    windowMs,
-    corsHeaders,
-  );
+    const rateLimitResponse = await checkRateLimit(
+      identityKey,
+      maxReqs,
+      windowMs,
+      corsHeaders,
+    );
 
-  if (rateLimitResponse) {
-    return rateLimitResponse;
-  }
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
 
-  // Quota checking for paid tiers
-  if (apiContext) {
-      const { checkUsageQuota } = await import('./lib/domains/auth/rateLimit');
-      const quotaResponse = await checkUsageQuota(
-          apiContext.org_id, 
-          apiContext.overage_policy,
-          corsHeaders
-      );
-      if (quotaResponse) {
-          return quotaResponse;
-      }
+    // Quota checking for paid tiers
+    if (apiContext) {
+        const { checkUsageQuota } = await import('./lib/domains/auth/rateLimit');
+        const quotaResponse = await checkUsageQuota(
+            apiContext.org_id, 
+            apiContext.overage_policy,
+            corsHeaders
+        );
+        if (quotaResponse) {
+            return quotaResponse;
+        }
+    }
   }
 
   // -----------------------------------------------------------------------
@@ -229,15 +243,7 @@ export async function middleware(request: NextRequest) {
   );
   response.headers.set("X-API-Version", "1");
   
-  // Security Headers
-  response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: wss:; font-src 'self' data:; frame-ancestors 'none';");
-  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-
-  return response;
+  return withSecurityHeaders(response);
 }
 
 // Match all requests except internal Next.js static assets so that OAuth callbacks

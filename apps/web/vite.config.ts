@@ -15,4 +15,8 @@ export default defineConfig({
       installDevServerMiddleware: true,
     },
   },
+  test: {
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    environment: 'jsdom'
+  }
 });

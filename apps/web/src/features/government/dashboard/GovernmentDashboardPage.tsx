@@ -7,13 +7,18 @@ import { LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from '@tanstack/react-router';
 
+import { CaseListView, CaseRecord } from './views/CaseListView';
+import { GraphView } from './views/GraphView';
+import { ExportReportView } from './views/ExportReportView';
+
 export function GovernmentDashboardPage() {
-  const [currentView, setCurrentView] = useState<'attribution' | 'docket' | 'sahyog'>('attribution');
+  const [currentView, setCurrentView] = useState<'cases' | 'attribution' | 'docket' | 'sahyog'>('cases');
+  const [selectedCase, setSelectedCase] = useState<CaseRecord | null>(null);
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate({ to: "/login" as any, search: { redirect: "/government" } as any });
+    navigate({ to: "/commercial/login" as any, search: { redirect: "/government" } as any });
   };
 
   return (
@@ -52,6 +57,13 @@ export function GovernmentDashboardPage() {
       <div className="shell">
         <aside>
           <h6>Investigation</h6>
+          <button 
+            onClick={() => { setCurrentView('cases'); setSelectedCase(null); }} 
+            className={currentView === 'cases' ? 'on' : ''}
+            style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', border: 'none', textAlign: 'left', cursor: 'pointer' }}
+          >
+            Cases Dashboard {currentView === 'cases' && <span className="ct">↵</span>}
+          </button>
           <button 
             onClick={() => setCurrentView('attribution')} 
             className={currentView === 'attribution' ? 'on' : ''}
@@ -92,6 +104,26 @@ export function GovernmentDashboardPage() {
         </aside>
 
         <main style={{ minWidth: 0, padding: 0 }}>
+          {currentView === 'cases' && !selectedCase && (
+            <CaseListView onSelectCase={(c) => setSelectedCase(c)} />
+          )}
+          {currentView === 'cases' && selectedCase && (
+            <div style={{ padding: 24, color: '#fff' }}>
+              <button 
+                onClick={() => setSelectedCase(null)}
+                style={{ background: 'transparent', color: '#aaa', border: '1px solid #333', padding: '6px 12px', borderRadius: 4, cursor: 'pointer', marginBottom: 24 }}
+              >
+                &larr; Back to Cases
+              </button>
+              <h2 style={{ margin: '0 0 8px 0' }}>Case Details: {selectedCase.caseReference}</h2>
+              <p style={{ color: '#aaa', margin: '0 0 24px 0' }}>Status: {selectedCase.status.toUpperCase()} | Wallet: {selectedCase.wallet}</p>
+              
+              <h3 style={{ margin: '0 0 16px 0' }}>Fund Flow Graph</h3>
+              <GraphView />
+
+              <ExportReportView caseRecord={selectedCase} />
+            </div>
+          )}
           {currentView === 'attribution' && <AttributionView />}
           {currentView === 'docket' && (
             <div style={{ padding: "0 26px" }}>

@@ -25,6 +25,8 @@ import { buildMixerSet, detectMixerExposure } from "../tracing/mixerLabels";
 import { getMethodologyDisclosure } from "../core/methodology";
 import { requestContextStorage } from "../core/logger";
 import { getVaspClassification } from "../compliance/vaspClassification";
+import { classify, hasHighSeverityTypology } from "../tracing/riskClassifier";
+import { sendCaseNotification } from "../cases/caseNotifications";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Response types (duplicated from attribute/route.ts for shared use)
@@ -97,6 +99,9 @@ export async function buildAttributionResponse(
       dataProvenance: paths.dataProvenance || { source: "live-etherscan", fetchedAt: new Date().toISOString() },
       graph: await buildGraphVisualizationPayload([]),
       vaspClassification: getVaspClassification(null),
+      riskTypologies: [],
+      generatedAt: new Date().toISOString(),
+      chain: "ethereum",
     };
   }
 
@@ -199,6 +204,27 @@ export async function buildAttributionResponse(
     (p) => (p.structuringFlaggedHops?.length ?? 0) > 0,
   );
 
+  // ── Risk typology classification ──────────────────────────────────────────
+  const sanctionedSet = new Set(
+    (sanctionsDetail ?? []).filter((s) => s.sanctioned).map((s) => s.address.toLowerCase()),
+  );
+  const riskTypologies = classify({ paths: allScoredPaths, sanctionedAddresses: sanctionedSet });
+
+  // Alert if HIGH-severity typology detected (fire-and-forget)
+  if (hasHighSeverityTypology(riskTypologies)) {
+    sendCaseNotification({
+      event: "high_risk_wallet_detected",
+      caseId: requestId ?? address.toLowerCase(),
+      title: `High-risk typology detected: ${address.slice(0, 8)}…`,
+      details: riskTypologies
+        .filter((t) => t.severity === "HIGH")
+        .map((t) => `${t.name}: ${t.description.slice(0, 120)}`)
+        .join(" | "),
+      metadata: { typologies: riskTypologies.map((t) => t.name) },
+      timestamp: new Date().toISOString(),
+    }).catch(() => {});
+  }
+
   return {
     wallet: address.toLowerCase(),
     nearestVasp: best.vasp,
@@ -224,5 +250,8 @@ export async function buildAttributionResponse(
     dataProvenance: paths.dataProvenance || { source: "live-etherscan", fetchedAt: new Date().toISOString() },
     graph: await buildGraphVisualizationPayload(allScoredPaths),
     vaspClassification: getVaspClassification(labelFor(best.vasp) ?? null),
+    riskTypologies,
+    generatedAt: new Date().toISOString(),
+    chain: "ethereum",
   };
 }

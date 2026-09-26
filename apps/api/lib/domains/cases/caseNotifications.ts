@@ -7,7 +7,7 @@
  */
 
 export interface NotificationPayload {
-  event: 'case_escalated' | 'sla_breached' | 'evidence_drift_detected';
+  event: 'case_escalated' | 'sla_breached' | 'evidence_drift_detected' | 'high_risk_wallet_detected';
   caseId: string;
   title: string;
   details: string;
