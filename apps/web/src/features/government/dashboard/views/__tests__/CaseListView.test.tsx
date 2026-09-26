@@ -25,7 +25,7 @@ describe('CaseListView', () => {
 
     // Test selection
     const viewButtons = screen.getAllByText('View');
-    fireEvent.click(viewButtons[0]);
+    fireEvent.click(viewButtons[0]!);
     expect(handleSelect).toHaveBeenCalled();
   });
 });
