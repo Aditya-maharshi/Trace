@@ -158,7 +158,11 @@ describe("scorePath", () => {
       },
     ];
 
-    const score = scorePath(path, txs);
+    const hopTxsMap = new Map([
+      ["0xstart", txs],
+      ["0xmid", txs],
+    ]);
+    const score = scorePath(path, hopTxsMap);
 
     // Hand-computed expected value
     const totalUSD = 5000; // 2 × $2500
@@ -191,7 +195,11 @@ describe("scorePath", () => {
       },
     ];
 
-    const score = scorePath(path, txs);
+    const hopTxsMap = new Map([
+      ["0xsomeone", txs],
+      ["0xvasp", txs],
+    ]);
+    const score = scorePath(path, hopTxsMap);
 
     // hops clamped to 1, so (1/1) × ln(1 + 5000) × exp(-0.01 × 1)
     const expected = 1 * Math.log(1 + 5000) * Math.exp(-0.01 * 1);
@@ -221,22 +229,22 @@ describe("combineScores", () => {
 // toConfidence — boundary tests
 //
 // The function uses STRICT inequality:
-//   score > 8  → "High"
-//   score > 3  → "Medium"
+//   score > 50  → "High"
+//   score > 10  → "Medium"
 //   otherwise  → "Low"
 //
-// So 8.0 exactly is NOT > 8, it should be "Medium".
-// And 3.0 exactly is NOT > 3, it should be "Low".
+// So 50.0 exactly is NOT > 50, it should be "Medium".
+// And 10.0 exactly is NOT > 10, it should be "Low".
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("toConfidence", () => {
   // ── High boundary ──
-  it("returns 'High' for score just above 8", () => {
-    expect(toConfidence(8.001)).toBe("High");
+  it("returns 'High' for score just above 50", () => {
+    expect(toConfidence(50.001)).toBe("High");
   });
 
-  it("returns 'Medium' for score exactly 8 (strict >)", () => {
-    expect(toConfidence(8)).toBe("Medium");
+  it("returns 'Medium' for score exactly 50 (strict >)", () => {
+    expect(toConfidence(50)).toBe("Medium");
   });
 
   it("returns 'High' for a very large score", () => {
@@ -244,16 +252,16 @@ describe("toConfidence", () => {
   });
 
   // ── Medium boundary ──
-  it("returns 'Medium' for score just above 3", () => {
-    expect(toConfidence(3.001)).toBe("Medium");
+  it("returns 'Medium' for score just above 10", () => {
+    expect(toConfidence(10.001)).toBe("Medium");
   });
 
-  it("returns 'Low' for score exactly 3 (strict >)", () => {
-    expect(toConfidence(3)).toBe("Low");
+  it("returns 'Low' for score exactly 10 (strict >)", () => {
+    expect(toConfidence(10)).toBe("Low");
   });
 
-  it("returns 'Medium' for score 7.999 (below High, above Low)", () => {
-    expect(toConfidence(7.999)).toBe("Medium");
+  it("returns 'Medium' for score 49.999 (below High, above Low)", () => {
+    expect(toConfidence(49.999)).toBe("Medium");
   });
 
   // ── Low ──
@@ -261,8 +269,8 @@ describe("toConfidence", () => {
     expect(toConfidence(0)).toBe("Low");
   });
 
-  it("returns 'Low' for score 2.999", () => {
-    expect(toConfidence(2.999)).toBe("Low");
+  it("returns 'Low' for score 9.999", () => {
+    expect(toConfidence(9.999)).toBe("Low");
   });
 
   it("returns 'Low' for negative score", () => {
@@ -402,7 +410,11 @@ describe("scorePath with mixed ETH and tokens", () => {
       },
     ];
 
-    const score = scorePath(path, txs);
+    const hopTxsMap = new Map([
+      ["0xstart", txs],
+      ["0xmid", txs],
+    ]);
+    const score = scorePath(path, hopTxsMap);
 
     // totalUSD = 2500 + 2500 = 5000 USD
     // hops = 2, recency = exp(-0.01 * 10)

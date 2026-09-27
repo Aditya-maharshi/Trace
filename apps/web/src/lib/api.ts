@@ -95,11 +95,23 @@ function validateAddress(address: string) {
   }
 }
 
+import { supabase } from "../integrations/supabase/client";
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { "x-api-key": API_KEY };
+  const { data } = await supabase.auth.getSession();
+  if (data?.session?.access_token) {
+    headers["Authorization"] = `Bearer ${data.session.access_token}`;
+  }
+  return headers;
+}
+
 export async function getAttribution(address: string): Promise<AttributionResponse> {
   validateAddress(address);
 
   const res = await fetch(`${apiUrl("/attribute")}?address=${address}`, {
-    headers: { "x-api-key": API_KEY }
+    headers: await getAuthHeaders(),
+    credentials: "same-origin",
   });
   const data = await res.json();
 
@@ -111,12 +123,13 @@ export async function getAttribution(address: string): Promise<AttributionRespon
 }
 
 export async function getNarrative(attribution: AttributionResponse): Promise<NarrateResponse> {
+  const headers = await getAuthHeaders();
+  headers["Content-Type"] = "application/json";
+
   const res = await fetch(apiUrl("/narrate"), {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": API_KEY,
-    },
+    headers,
+    credentials: "same-origin",
     body: JSON.stringify(attribution),
   });
 
@@ -133,12 +146,13 @@ export async function askFollowUp(
   question: string,
   context: AttributionResponse,
 ): Promise<ChatResponse> {
+  const headers = await getAuthHeaders();
+  headers["Content-Type"] = "application/json";
+
   const res = await fetch(apiUrl("/chat"), {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": API_KEY,
-    },
+    headers,
+    credentials: "same-origin",
     body: JSON.stringify({ question, context }),
   });
 
@@ -195,7 +209,8 @@ export async function askFollowUp(
 
 export async function getConfig(): Promise<{ isDemoMode: boolean }> {
   const res = await fetch(apiUrl("/config"), {
-    headers: { "x-api-key": API_KEY },
+    headers: await getAuthHeaders(),
+    credentials: "same-origin",
   });
   const data = await res.json();
   if (!res.ok) {
@@ -216,9 +231,8 @@ export async function exportReport(attributionData: AttributionResponse, format:
     `${apiUrl("/report")}?format=${format}&requestId=${encodeURIComponent(attributionData.requestId)}`,
     {
       method: "GET",
-      headers: {
-        "x-api-key": API_KEY,
-      },
+      headers: await getAuthHeaders(),
+      credentials: "same-origin",
     },
   );
 

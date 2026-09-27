@@ -161,7 +161,7 @@ export function scorePathDetailed(
           specificOutflow += valUSD;
           const tStamp = parseInt(tx.timeStamp, 10) * 1000;
           if (tStamp > lastTxTime) lastTxTime = tStamp;
-          if (valUSD > totalValueUSD) totalValueUSD = valUSD;
+          totalValueUSD += valUSD;
         }
       }
     }
@@ -174,9 +174,23 @@ export function scorePathDetailed(
     taint *= (specificOutflow / totalOutflow);
   }
 
-  const daysSinceLastTx = lastTxTime > 0 ? Math.max(0, (Date.now() - lastTxTime) / MS_PER_DAY) : 0;
-  const score = taint * 100;
+  if (path.path.length === 1) {
+    const vaspAddr = path.path[0].toLowerCase();
+    const txs = hopTxsMap.get(vaspAddr) || [];
+    for (const tx of txs) {
+      if (tx.to.toLowerCase() === vaspAddr) {
+        const valUSD = txValueToUSD(tx);
+        totalValueUSD += valUSD;
+        const tStamp = parseInt(tx.timeStamp, 10) * 1000;
+        if (tStamp > lastTxTime) lastTxTime = tStamp;
+      }
+    }
+  }
 
+  const daysSinceLastTx = lastTxTime > 0 ? Math.max(0, (Date.now() - lastTxTime) / MS_PER_DAY) : 0;
+  const recencyFactor = Math.exp(-0.01 * daysSinceLastTx);
+  const hops = Math.max(1, path.depth);
+  const score = (1 / hops) * Math.log(1 + totalValueUSD) * recencyFactor;
   return {
     hops: Math.max(1, path.depth),
     totalValueUSD,

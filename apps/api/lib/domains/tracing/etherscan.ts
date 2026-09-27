@@ -124,7 +124,7 @@ export const CACHE_TTL_MS = 5 * 60 * 1000;
 const memoryCache = new Map<string, CacheEntry<unknown>>();
 
 function getCacheDir(): string {
-  return path.join(process.cwd(), "fixtures");
+  return path.join(process.cwd(), "data/cache");
 }
 
 function getCacheFilePath(key: string): string {

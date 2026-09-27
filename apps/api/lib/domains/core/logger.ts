@@ -23,14 +23,13 @@ let missingIpSaltWarned = false;
 
 export function hashIp(ip: string | null | undefined): string | null {
   if (!ip) return null;
-  const pepper =
-    process.env.IP_HASH_SALT || process.env.SUPABASE_JWT_SECRET || "trace-ip-pseudonym";
-  if (!process.env.IP_HASH_SALT && process.env.NODE_ENV === "production" && !missingIpSaltWarned) {
-    missingIpSaltWarned = true;
-    console.warn(
-      "[logger] IP_HASH_SALT is not set — hashing IPs with a fallback pepper. Set IP_HASH_SALT in production.",
-    );
+  const salt = process.env.IP_HASH_SALT;
+  if (!salt || salt === "replace-with-a-long-random-string") {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("CRITICAL: IP_HASH_SALT is required in production and must not be the placeholder.");
+    }
   }
+  const pepper = salt || process.env.SUPABASE_JWT_SECRET || "trace-ip-pseudonym";
   const digest = crypto.createHmac("sha256", pepper).update(ip.trim()).digest("hex").slice(0, 16);
   return `h:${digest}`;
 }

@@ -33,3 +33,7 @@ dist-ssr
  
 # Env files
 .env
+.env.local
+.env*.local
+.env.staging
+.vercel/

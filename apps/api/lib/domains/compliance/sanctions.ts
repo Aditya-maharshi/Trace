@@ -86,7 +86,7 @@ const OPENSANCTIONS_BASE_URL =
 const OPENSANCTIONS_API_KEY = process.env.OPENSANCTIONS_API_KEY ?? "";
 
 /** Cache directory relative to the project root. */
-const CACHE_DIR = path.resolve(process.cwd(), "fixtures");
+const CACHE_DIR = path.resolve(process.cwd(), "data/cache");
 
 /**
  * Cache TTL in milliseconds.

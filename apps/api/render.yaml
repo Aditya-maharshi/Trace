@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: trace-api
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: NODE_ENV
+        value: production
+      # ... other environment variables should be configured in the Render Dashboard
