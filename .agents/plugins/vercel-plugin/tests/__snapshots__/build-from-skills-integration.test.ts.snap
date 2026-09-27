@@ -1,0 +1,55 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`CLI --json output shape --json output shape snapshot 1`] = `
+[
+  {
+    "dependencyCount": 1,
+    "diagnosticCount": 0,
+    "resolvedCount": 2,
+    "status": "unchanged",
+    "template": "agents/ai-architect.md",
+  },
+  {
+    "dependencyCount": 2,
+    "diagnosticCount": 0,
+    "resolvedCount": 12,
+    "status": "unchanged",
+    "template": "agents/deployment-expert.md",
+  },
+  {
+    "dependencyCount": 2,
+    "diagnosticCount": 0,
+    "resolvedCount": 8,
+    "status": "unchanged",
+    "template": "agents/performance-optimizer.md",
+  },
+  {
+    "dependencyCount": 1,
+    "diagnosticCount": 0,
+    "resolvedCount": 9,
+    "status": "unchanged",
+    "template": "commands/bootstrap.md",
+  },
+  {
+    "dependencyCount": 1,
+    "diagnosticCount": 0,
+    "resolvedCount": 5,
+    "status": "unchanged",
+    "template": "commands/deploy.md",
+  },
+  {
+    "dependencyCount": 1,
+    "diagnosticCount": 0,
+    "resolvedCount": 6,
+    "status": "unchanged",
+    "template": "commands/env.md",
+  },
+  {
+    "dependencyCount": 0,
+    "diagnosticCount": 0,
+    "resolvedCount": 0,
+    "status": "unchanged",
+    "template": "commands/status.md",
+  },
+]
+`;
