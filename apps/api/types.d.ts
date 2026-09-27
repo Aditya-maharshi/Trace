@@ -1,3 +1,5 @@
+export {};
+
 declare module 'next/server' {
   export class NextRequest extends Request {
     public nextUrl: import('url').URL & {
