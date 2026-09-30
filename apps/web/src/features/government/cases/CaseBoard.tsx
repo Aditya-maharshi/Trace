@@ -13,7 +13,7 @@
  * to pre-validate transitions client-side before making the API call.
  */
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -49,7 +49,7 @@ interface SyncingState {
   originalStatus: CaseStatus;
 }
 
-function DroppableColumn({
+const DroppableColumn = React.memo(function DroppableColumn({
   columnId,
   label,
   accent,
@@ -100,7 +100,7 @@ function DroppableColumn({
       </div>
     </div>
   );
-}
+});
 
 export function CaseBoard() {
   const [cases, setCases] = useState<Case[]>([]);
