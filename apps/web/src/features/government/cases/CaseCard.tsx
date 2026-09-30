@@ -10,7 +10,7 @@
  * Respects prefers-reduced-motion for the breach pulse animation.
  */
 
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Case } from '../../../../../../packages/shared-types';
@@ -44,7 +44,7 @@ function getRiskBadge(score: number | null) {
   return { label: 'Low', color: 'bg-emerald-500/15 text-emerald-400', dot: 'bg-emerald-400' };
 }
 
-export function CaseCard({ caseData, isSyncing, isSnapBack, onClick }: CaseCardProps) {
+export const CaseCard = React.memo(function CaseCard({ caseData, isSyncing, isSnapBack, onClick }: CaseCardProps) {
   const {
     attributes,
     listeners,
@@ -138,4 +138,4 @@ export function CaseCard({ caseData, isSyncing, isSnapBack, onClick }: CaseCardP
       </div>
     </div>
   );
-}
+});
