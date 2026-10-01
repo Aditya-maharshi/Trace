@@ -29,15 +29,16 @@ import {
 } from '@sih/shared-types';
 import { sendCaseNotification } from './caseNotifications';
 
-export function canonicalJsonStringify(obj: any): string {
+export function canonicalJsonStringify(obj: unknown): string {
   if (obj === null || typeof obj !== 'object') {
     return JSON.stringify(obj);
   }
   if (Array.isArray(obj)) {
-    return '[' + obj.map(canonicalJsonStringify).join(',') + ']';
+    return '[' + obj.map((item) => canonicalJsonStringify(item)).join(',') + ']';
   }
-  const keys = Object.keys(obj).sort();
-  return '{' + keys.map((k) => `${JSON.stringify(k)}:${canonicalJsonStringify(obj[k])}`).join(',') + '}';
+  const record = obj as Record<string, unknown>;
+  const keys = Object.keys(record).sort();
+  return '{' + keys.map((k) => `${JSON.stringify(k)}:${canonicalJsonStringify(record[k])}`).join(',') + '}';
 }
 
 export function computePayloadHash(payload: any): string {
