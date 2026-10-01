@@ -40,7 +40,7 @@ export function canonicalJsonStringify(obj: any): string {
   return '{' + keys.map((k) => `${JSON.stringify(k)}:${canonicalJsonStringify(obj[k])}`).join(',') + '}';
 }
 
-export function computePayloadHash(payload: any): string {
+export function computePayloadHash(payload: unknown): string {
   const canonical = canonicalJsonStringify(payload ?? {});
   return crypto.createHash('sha256').update(canonical).digest('hex');
 }
