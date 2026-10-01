@@ -427,7 +427,7 @@ export async function addWalletToCase(params: {
   }
 
   // Update wallets array on cases
-  const { data: currentCase } = await client.from('cases').select('wallets').eq('id', params.caseId).single();
+  const { data: currentCase } = await client.from('cases').select('wallets, status').eq('id', params.caseId).single();
   const existingWallets: string[] = currentCase?.wallets || [];
   if (!existingWallets.includes(cleanAddr)) {
     await client
@@ -440,7 +440,7 @@ export async function addWalletToCase(params: {
   await client.from('case_history').insert({
     case_id: params.caseId,
     from_state: null,
-    to_state: (currentCase as any)?.status || 'open',
+    to_state: currentCase?.status || 'open',
     actor_id: params.addedBy || 'system',
     actor_type: params.addedBy ? 'human' : 'system',
     reason: `Added wallet ${cleanAddr} to cluster`,
