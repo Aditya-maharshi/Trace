@@ -634,22 +634,10 @@ export async function findNearestVASP(
       onProgress?.({ type: "pruned", address: current.address, reason: "maxDepth" }); // Emitting as pruned for UI
       continue;
     }
-    // Extract neighbor count from the upcoming neighborMap (we compute it just below)
-    // We emit after extracting to have accurate counts
-    const _neighborCountForProgress = (() => {
-      // quick count — does not affect the real neighborMap computed below
-      const seen = new Set<string>();
-      const cur = current.address.toLowerCase();
-      for (const tx of transactions) {
-        const f = tx.from.toLowerCase(), t = tx.to.toLowerCase();
-        if (f !== t) { if (f === cur) seen.add(t); else if (t === cur) seen.add(f); }
-      }
-      return seen.size;
-    })();
-    onProgress?.({ type: "fetched", address: current.address, txCount: transactions.length, neighborCount: _neighborCountForProgress });
-
     // 5. Extract all unique neighbors and aggregate their normalized USD transaction values & structuring stats
     const neighborMap = extractNormalizedNeighbors(transactions, current.address);
+
+    onProgress?.({ type: "fetched", address: current.address, txCount: transactions.length, neighborCount: neighborMap.size });
 
     // 6. Union ranking: split budget (e.g. 10 value, 5 structuring for maxFanout=15).
     //    This ensures structured flows are explored even when individual transfers
