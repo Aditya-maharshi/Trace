@@ -54,6 +54,9 @@ export async function POST(req: NextRequest) {
     let updatedCount = 0;
     let breachedCount = 0;
 
+    const updatePromises: Promise<void>[] = [];
+    const notificationPromises: Promise<void>[] = [];
+
     // 3. Evaluate each case and update sla_status if changed
     for (const c of activeCases) {
       const threshold =
@@ -64,14 +67,18 @@ export async function POST(req: NextRequest) {
       const sla = computeSlaStatus(c.entered_current_state_at, threshold, nowTime);
 
       if (sla.status !== c.sla_status) {
-        const { error: updateErr } = await client
-          .from('cases')
-          .update({ sla_status: sla.status as SlaStatus, updated_at: new Date().toISOString() })
-          .eq('id', c.id);
-
-        if (!updateErr) {
-          updatedCount++;
-        }
+        // Collect DB update promises instead of awaiting individually
+        updatePromises.push(
+          (async () => {
+            const { error: updateErr } = await client
+              .from('cases')
+              .update({ sla_status: sla.status as SlaStatus, updated_at: new Date().toISOString() })
+              .eq('id', c.id);
+            if (!updateErr) {
+              updatedCount++;
+            }
+          })()
+        );
 
         // 4. Fire notification on breach
         if (sla.status === 'breached' && c.sla_status !== 'breached') {
@@ -79,23 +86,28 @@ export async function POST(req: NextRequest) {
 
           const isHighRisk = c.risk_score !== null && c.risk_score >= 70;
 
-          sendCaseNotification({
-            event: 'sla_breached',
-            caseId: c.id,
-            title: c.title || 'Untitled case',
-            details: `SLA breached: ${Math.round(sla.elapsedHours)}h in "${c.status}" state (threshold: ${threshold}h).${isHighRisk ? ' HIGH RISK — escalating to compliance lead.' : ''}`,
-            metadata: {
-              status: c.status,
-              elapsed_hours: Math.round(sla.elapsedHours),
-              threshold_hours: threshold,
-              risk_score: c.risk_score,
-              analyst_id: c.analyst_id,
-            },
-            timestamp: new Date().toISOString(),
-          }).catch(() => {});
+          notificationPromises.push(
+            sendCaseNotification({
+              event: 'sla_breached',
+              caseId: c.id,
+              title: c.title || 'Untitled case',
+              details: `SLA breached: ${Math.round(sla.elapsedHours)}h in "${c.status}" state (threshold: ${threshold}h).${isHighRisk ? ' HIGH RISK — escalating to compliance lead.' : ''}`,
+              metadata: {
+                status: c.status,
+                elapsed_hours: Math.round(sla.elapsedHours),
+                threshold_hours: threshold,
+                risk_score: c.risk_score,
+                analyst_id: c.analyst_id,
+              },
+              timestamp: new Date().toISOString(),
+            }).catch(() => {})
+          );
         }
       }
     }
+
+    // Await all updates and notifications concurrently
+    await Promise.all([...updatePromises, ...notificationPromises]);
 
     return NextResponse.json(
       { message: `SLA sweep complete`, total: activeCases.length, updated: updatedCount, breached: breachedCount },
