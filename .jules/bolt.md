@@ -1,0 +1,3 @@
+## 2023-10-25 - Parallelize Independent Promises
+**Learning:** Sequential await loops for independent async operations (like API calls for an array of items) add up linearly, causing significant latency. Using Promise.all to run them concurrently can reduce processing time dramatically, often proportionally to the number of items.
+**Action:** When iterating over an array to perform independent asynchronous tasks, use Promise.all combined with map instead of a sequential for...of loop, provided the downstream service can handle the concurrency (e.g. rate limits are respected by input validation like schema max length).

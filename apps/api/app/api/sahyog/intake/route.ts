@@ -109,17 +109,18 @@ async function runTraceJob(
       .update({ status: "tracing", updated_at: new Date().toISOString() })
       .eq("id", jobId);
 
-    // Trace all wallets (sequentially to avoid thundering-herd on the API)
-    const allResults = [];
-    for (const wallet of input.wallets) {
-      const result = await trace({
-        wallet,
-        chain: input.chain as SupportedChain,
-        maxHops: 8,
-        maxBranchesPerHop: 5,
-      });
-      allResults.push(result);
-    }
+    // Trace all wallets concurrently to improve performance
+    // Max 10 wallets based on schema, so API rate limits are not a major concern
+    const allResults = await Promise.all(
+      input.wallets.map((wallet) =>
+        trace({
+          wallet,
+          chain: input.chain as SupportedChain,
+          maxHops: 8,
+          maxBranchesPerHop: 5,
+        })
+      )
+    );
 
     // Use the first wallet's result as the primary attribution for documents
     const primary = allResults[0];
