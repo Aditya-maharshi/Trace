@@ -53,6 +53,20 @@ export function logError(error: unknown, extraContext?: Record<string, unknown>)
   captureException(error, extraContext);
 }
 
+export function logDebug(message: string, extraContext?: Record<string, unknown>): void {
+  const ctx = requestContextStorage.getStore();
+  console.log(
+    JSON.stringify({
+      level: "debug",
+      timestamp: new Date().toISOString(),
+      reqId: ctx?.requestId || "unknown-req",
+      walletHash: ctx?.walletAddress ? hashAddress(ctx.walletAddress) : undefined,
+      message,
+      ...extraContext,
+    }),
+  );
+}
+
 export function logApiTrace(
   targetService: string,
   latencyMs: number,

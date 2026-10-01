@@ -36,6 +36,7 @@ import { buildBridgeSet, labelForBridge, isBridge } from "./bridgeLabels";
 import { labelFor as labelForVasp } from "../tracing/vaspLabels";
 import { mixerLabelFor } from "../tracing/mixerLabels";
 import { checkSanctioned } from "../compliance/sanctions";
+import { logDebug } from "../core/logger";
 
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -196,7 +197,7 @@ function normalizeTxFetch<T>(
  */
 function debug(message: string): void {
   if (DEBUG_ENABLED) {
-    console.log(`[graphBuilder] ${message}`);
+    logDebug(`[graphBuilder] ${message}`);
   }
 }
 
