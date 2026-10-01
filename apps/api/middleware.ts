@@ -30,8 +30,8 @@ export async function middleware(request: any) {
   let responseOrigin: string;
 
   if (configuredOrigins.length > 0) {
-    // Allow if it exactly matches one of the configured origins, OR if it's a Vercel preview deployment
-    if (configuredOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+    // Allow if it exactly matches one of the configured origins
+    if (configuredOrigins.includes(origin)) {
       responseOrigin = origin;
     } else {
       responseOrigin = "";
