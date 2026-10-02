@@ -296,19 +296,26 @@ export async function aggregateAttributions(
   paths: PathResult[],
   fetchTxs: (address: string) => Promise<(Transaction | TokenTransaction)[]>,
 ): Promise<AggregatedAttribution[]> {
+  // Collect all unique addresses across all paths to fetch transactions concurrently
+  const uniqueAddresses = new Set<string>();
+  for (const p of paths) {
+    for (let i = 0; i < p.path.length - 1; i++) {
+      uniqueAddresses.add(p.path[i].toLowerCase());
+    }
+  }
+
+  // Fetch transactions for all non-terminal hops in parallel
+  const hopTxsMap = new Map<string, (Transaction | TokenTransaction)[]>();
+  const addressesArray = Array.from(uniqueAddresses);
+  const txResults = await Promise.all(addressesArray.map((addr) => fetchTxs(addr)));
+  for (let i = 0; i < addressesArray.length; i++) {
+    hopTxsMap.set(addressesArray[i], txResults[i]);
+  }
+
   // Score each path individually
   const scored: ScoredAttribution[] = [];
 
   for (const p of paths) {
-    // Fetch transactions for EVERY non-terminal hop in the path
-    const hopTxsMap = new Map<string, (Transaction | TokenTransaction)[]>();
-    for (let i = 0; i < p.path.length - 1; i++) {
-      const addr = p.path[i].toLowerCase();
-      if (!hopTxsMap.has(addr)) {
-        hopTxsMap.set(addr, await fetchTxs(addr));
-      }
-    }
-
     // Use scorePathDetailed to get both the score and the breakdown terms
     const breakdown = scorePathDetailed(p, hopTxsMap);
 
