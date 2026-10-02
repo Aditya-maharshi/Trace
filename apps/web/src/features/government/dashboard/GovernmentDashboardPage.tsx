@@ -47,6 +47,8 @@ export function GovernmentDashboardPage() {
           </div>
           <button 
             onClick={handleSignOut}
+            aria-label="Sign out"
+            title="Sign out"
             className="flex items-center gap-1.5 px-3 py-1.5 ml-4 rounded-lg text-sm text-white/50 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer border-none bg-transparent"
           >
             <LogOut className="h-4 w-4" />
