@@ -1,0 +1,3 @@
+## 2026-10-03 - Icon-only Buttons Missing ARIA Labels
+**Learning:** Found multiple instances where interactive, icon-only buttons (like Sign Out and Close) lacked `aria-label` attributes and tooltip `title` attributes. This breaks accessibility for screen reader users, who will just hear "button" without context, and reduces UX for mouse users who do not get a tooltip.
+**Action:** Always ensure that any button containing only an icon has an explicit `aria-label` providing its action. Additionally, it is often helpful to include a `title` attribute for mouse users to explain the button's action if space permits.
