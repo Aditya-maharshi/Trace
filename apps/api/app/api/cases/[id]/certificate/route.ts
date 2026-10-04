@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
-import { getSupabaseAdmin, getSupabaseUserClient } from "../../../../../lib/domains/core/auditLog";
+import { getSupabaseUserClient } from "../../../../../lib/domains/core/auditLog";
 import { loadAttributionResult } from "../../../../../lib/domains/core/resultStore";
 import { computePayloadHash } from "../../../../../lib/domains/cases/caseStore";
 import type { AttributionResponse } from "@sih/shared-types";
@@ -101,8 +101,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     // 1. Verify case exists
-    const admin = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
-    if (!admin) {
+    const client = getSupabaseUserClient(req.headers.get('authorization') || '');
+    if (!client) {
       return NextResponse.json({ error: "Database service unavailable" }, { status: 500 });
     }
 
@@ -140,7 +140,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       } catch (e) {}
     }
 
-    await admin.from("case_history").insert({
+    await client.from("case_history").insert({
       case_id: caseId,
       from_state: null,
       to_state: caseRow.status || "open",

@@ -1,0 +1,4 @@
+## 2026-10-04 - [CRITICAL] Fix IDOR Vulnerability via RLS Bypass in Case Endpoints
+**Vulnerability:** Several endpoints under `apps/api/app/api/cases/[id]/` (such as `export`, `wallets`, `evidence`, `sahyog`, `certificate`, `summons`) were falling back to `getSupabaseAdmin()` when fetching the Supabase client if the user client was falsy. This admin client bypassed Row Level Security (RLS) entirely.
+**Learning:** Bypassing RLS by using a service-role key (`getSupabaseAdmin`) in user-driven API endpoints introduces severe Insecure Direct Object Reference (IDOR) vulnerabilities, allowing unauthorized access or modification to other users' cases.
+**Prevention:** Always use `getSupabaseUserClient(authHeader)` for user-driven endpoints to maintain the correct authorization context and rely on RLS policies. Do not fallback to the admin client.
