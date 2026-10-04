@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin, getSupabaseUserClient } from "../../../../../lib/domains/core/auditLog";
+import { getSupabaseUserClient } from "../../../../../lib/domains/core/auditLog";
 import { loadAttributionResult } from "../../../../../lib/domains/core/resultStore";
 import { computePayloadHash } from "../../../../../lib/domains/cases/caseStore";
 import { compileSahyogPayload, StubSahyogAdapter } from "../../../../../lib/domains/compliance/sahyogAdapter";
@@ -20,12 +20,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: "requestId is required" }, { status: 400 });
     }
 
-    const admin = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
-    if (!admin) {
+    const client = getSupabaseUserClient(req.headers.get('authorization') || '');
+    if (!client) {
       return NextResponse.json({ error: "Database service unavailable" }, { status: 500 });
     }
 
-    const { data: caseRow, error: caseErr } = await admin
+    const { data: caseRow, error: caseErr } = await client
       .from("cases")
       .select("*")
       .eq("id", caseId)
