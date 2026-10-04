@@ -299,22 +299,38 @@ export async function aggregateAttributions(
   // Score each path individually
   const scored: ScoredAttribution[] = [];
 
+  // Parallelize transaction fetching for all unique hops across all paths
+  const allHopAddresses = new Set<string>();
   for (const p of paths) {
-    // Fetch transactions for EVERY non-terminal hop in the path
-    const hopTxsMap = new Map<string, (Transaction | TokenTransaction)[]>();
     for (let i = 0; i < p.path.length - 1; i++) {
-      const addr = p.path[i].toLowerCase();
-      if (!hopTxsMap.has(addr)) {
-        hopTxsMap.set(addr, await fetchTxs(addr));
-      }
+      allHopAddresses.add(p.path[i].toLowerCase());
     }
+  }
 
+  const hopAddresses = Array.from(allHopAddresses);
+  // Fetch transactions concurrently for all needed hops
+  const fetchedTxs = await Promise.all(
+    hopAddresses.map(async (addr) => {
+      const txs = await fetchTxs(addr);
+      return { addr, txs };
+    })
+  );
+
+  const globalHopTxsMap = new Map<string, (Transaction | TokenTransaction)[]>();
+  for (const { addr, txs } of fetchedTxs) {
+    globalHopTxsMap.set(addr, txs);
+  }
+
+  for (const p of paths) {
     // Use scorePathDetailed to get both the score and the breakdown terms
-    const breakdown = scorePathDetailed(p, hopTxsMap);
+    const breakdown = scorePathDetailed(p, globalHopTxsMap);
 
     // Identify assets involved along this path
     const assetSet = new Set<string>();
-    for (const [_, txs] of hopTxsMap) {
+    // Iterate only over hops in this specific path to avoid pulling in unrelated assets
+    for (let i = 0; i < p.path.length - 1; i++) {
+      const addr = p.path[i].toLowerCase();
+      const txs = globalHopTxsMap.get(addr) || [];
       for (const tx of txs) {
         if ("tokenSymbol" in tx && tx.tokenSymbol) {
           assetSet.add(tx.tokenSymbol.toUpperCase());
