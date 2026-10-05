@@ -83,6 +83,8 @@ interface SeedResult {
 let orgBSeed: SeedResult;
 
 beforeAll(async () => {
+  if (!isIsolationTestEnabled) return;
+
   // Create a case under Org B
   const sensitiveTitle = `OrgB_Sensitive_Case_${Date.now()}`;
   const createRes = await apiRequest("POST", "/api/cases", ORG_B_KEY, {
@@ -108,7 +110,9 @@ beforeAll(async () => {
 
 // ─── Test: Direct ID-based Leakage (GET /api/cases/:id) ───────────────────────
 
-describe("Cross-tenant isolation: GET by ID", () => {
+const isIsolationTestEnabled = !!process.env.TEST_API_BASE;
+
+describe.skipIf(!isIsolationTestEnabled)("Cross-tenant isolation: GET by ID", () => {
   test("Org A cannot fetch Org B case by ID", async () => {
     const res = await apiRequest("GET", `/api/cases/${orgBSeed.caseId}`, ORG_A_KEY);
 
@@ -121,7 +125,7 @@ describe("Cross-tenant isolation: GET by ID", () => {
 
 // ─── Test: List/Query Endpoint Leakage ────────────────────────────────────────
 
-describe("Cross-tenant isolation: List endpoints", () => {
+describe.skipIf(!isIsolationTestEnabled)("Cross-tenant isolation: List endpoints", () => {
   test("Org A GET /api/cases does not include Org B rows", async () => {
     const res = await apiRequest("GET", "/api/cases", ORG_A_KEY);
 
@@ -146,7 +150,7 @@ describe("Cross-tenant isolation: List endpoints", () => {
 
 // ─── Test: Mutation / Body-Parameter Leakage ──────────────────────────────────
 
-describe("Cross-tenant isolation: Mutations", () => {
+describe.skipIf(!isIsolationTestEnabled)("Cross-tenant isolation: Mutations", () => {
   test("Org A cannot transition Org B case", async () => {
     const res = await apiRequest("PATCH", `/api/cases/${orgBSeed.caseId}`, ORG_A_KEY, {
       status: "closed",
@@ -179,7 +183,7 @@ describe("Cross-tenant isolation: Mutations", () => {
 
 // ─── Test: MCP Tool Surface ────────────────────────────────────────────────────
 
-describe("Cross-tenant isolation: MCP tools", () => {
+describe.skipIf(!isIsolationTestEnabled)("Cross-tenant isolation: MCP tools", () => {
   test("MCP get_case cannot fetch Org B case with Org A key", async () => {
     // Simulate MCP tool call over the SSE endpoint
     const res = await fetch(`${API_BASE}/api/mcp`, {
