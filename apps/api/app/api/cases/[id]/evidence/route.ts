@@ -19,6 +19,19 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 
   try {
+    const { data: caseRow } = await client
+      .from('cases')
+      .select('user_id, analyst_id')
+      .eq('id', params.id)
+      .single();
+
+    if (!caseRow) {
+      return NextResponse.json({ error: 'Case not found' }, { status: 404 });
+    }
+    if (!assertCaseAccess(caseRow, userId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { data: evidence, error } = await client
       .from('case_evidence')
       .select('*')
@@ -46,6 +59,21 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   try {
+    const ownerClient = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
+    if (ownerClient) {
+      const { data: caseRow } = await ownerClient
+        .from('cases')
+        .select('user_id, analyst_id')
+        .eq('id', params.id)
+        .single();
+      if (!caseRow) {
+        return NextResponse.json({ error: 'Case not found' }, { status: 404 });
+      }
+      if (!assertCaseAccess(caseRow, userId)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
     const body = await req.json();
     const { evidenceType, lookupId, subgraphSlice, annotation } = body;
 
