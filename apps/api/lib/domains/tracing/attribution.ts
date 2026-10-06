@@ -299,14 +299,29 @@ export async function aggregateAttributions(
   // Score each path individually
   const scored: ScoredAttribution[] = [];
 
+  // Extract all unique addresses to fetch transactions for
+  const uniqueAddresses = new Set<string>();
   for (const p of paths) {
-    // Fetch transactions for EVERY non-terminal hop in the path
+    for (let i = 0; i < p.path.length - 1; i++) {
+      uniqueAddresses.add(p.path[i].toLowerCase());
+    }
+  }
+
+  // Fetch all transactions concurrently
+  const sharedHopTxsMap = new Map<string, (Transaction | TokenTransaction)[]>();
+  await Promise.all(
+    Array.from(uniqueAddresses).map(async (addr) => {
+      const txs = await fetchTxs(addr);
+      sharedHopTxsMap.set(addr, txs);
+    })
+  );
+
+  for (const p of paths) {
+    // Get transactions for EVERY non-terminal hop in the path
     const hopTxsMap = new Map<string, (Transaction | TokenTransaction)[]>();
     for (let i = 0; i < p.path.length - 1; i++) {
       const addr = p.path[i].toLowerCase();
-      if (!hopTxsMap.has(addr)) {
-        hopTxsMap.set(addr, await fetchTxs(addr));
-      }
+      hopTxsMap.set(addr, sharedHopTxsMap.get(addr) || []);
     }
 
     // Use scorePathDetailed to get both the score and the breakdown terms
