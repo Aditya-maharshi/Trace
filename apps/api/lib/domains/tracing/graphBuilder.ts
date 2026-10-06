@@ -728,6 +728,27 @@ export async function buildGraphVisualizationPayload(pathResults: { path: string
   const nodes = new Map<string, { id: string; type: "wallet" | "vasp" | "mixer" | "bridge" | "sanctioned"; label?: string }>();
   const edges = new Map<string, { source: string; target: string; hopIndex: number; valueUSD: number; asset: string; timestamp: string }>();
 
+  // Extract all unique addresses to fetch sanctions concurrently
+  const uniqueAddresses = new Set<string>();
+  for (const pr of pathResults) {
+    for (const addr of pr.path) {
+      uniqueAddresses.add(addr.toLowerCase());
+    }
+  }
+
+  // Pre-fetch sanction status in parallel
+  const sanctionsMap = new Map<string, boolean>();
+  await Promise.all(
+    Array.from(uniqueAddresses).map(async (addr) => {
+      try {
+        const isSanc = await checkSanctioned(addr);
+        sanctionsMap.set(addr, isSanc);
+      } catch (err) {
+        sanctionsMap.set(addr, false);
+      }
+    })
+  );
+
   for (const pr of pathResults) {
     for (let i = 0; i < pr.path.length; i++) {
       const addr = pr.path[i].toLowerCase();
@@ -735,12 +756,7 @@ export async function buildGraphVisualizationPayload(pathResults: { path: string
       let type: "wallet" | "vasp" | "mixer" | "bridge" | "sanctioned" = "wallet";
       let label: string | undefined = undefined;
 
-      let isSanc = false;
-      try {
-        isSanc = await checkSanctioned(addr);
-      } catch (err) {
-        // Ignore sanctions errors for graph visualization
-      }
+      const isSanc = sanctionsMap.get(addr) || false;
       
       if (isSanc) {
         type = "sanctioned";
