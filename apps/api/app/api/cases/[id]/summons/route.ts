@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import PDFDocument from "pdfkit";
-import { getSupabaseAdmin, getSupabaseUserClient } from "../../../../../lib/domains/core/auditLog";
+import { getSupabaseUserClient } from "../../../../../lib/domains/core/auditLog";
 import { loadAttributionResult } from "../../../../../lib/domains/core/resultStore";
 import type { AttributionResponse, ScoredAttribution } from "@sih/shared-types";
 
@@ -108,7 +108,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: "requestId is required" }, { status: 400 });
     }
 
-    const admin = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
+    const admin = getSupabaseUserClient(req.headers.get('authorization') || '');
     if (!admin) {
       return NextResponse.json({ error: "Database service unavailable" }, { status: 500 });
     }
