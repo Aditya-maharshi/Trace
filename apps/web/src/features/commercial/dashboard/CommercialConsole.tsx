@@ -950,7 +950,7 @@ export function CommercialConsole({
             <b>Trace AI</b>
             <span>{data ? `Explaining ${truncateAddress(data.wallet)}` : "No active screening"}</span>
           </div>
-          <button className="close" type="button" onClick={() => setAiOpen(false)}>✕</button>
+          <button className="close" type="button" onClick={() => setAiOpen(false)} aria-label="Close Trace AI" title="Close Trace AI">✕</button>
         </div>
         <div className="ai-suggested">
           {["Why is this confidence level assigned?", "Are there mixer or sanctions signals?", "Which hop is most suspicious?"].map((q) => (
