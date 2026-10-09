@@ -13,12 +13,25 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const client = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
+  const client = getSupabaseUserClient(req.headers.get('authorization') || '');
   if (!client) {
     return NextResponse.json({ error: 'Database service unavailable' }, { status: 500 });
   }
 
   try {
+    const { data: caseRow } = await client
+      .from('cases')
+      .select('user_id, analyst_id')
+      .eq('id', params.id)
+      .single();
+
+    if (!caseRow) {
+      return NextResponse.json({ error: 'Case not found' }, { status: 404 });
+    }
+    if (!assertCaseAccess(caseRow, userId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { data: evidence, error } = await client
       .from('case_evidence')
       .select('*')
@@ -45,7 +58,25 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const client = getSupabaseUserClient(req.headers.get('authorization') || '');
+  if (!client) {
+    return NextResponse.json({ error: 'Database service unavailable' }, { status: 500 });
+  }
+
   try {
+    const { data: caseRow } = await client
+      .from('cases')
+      .select('user_id, analyst_id')
+      .eq('id', params.id)
+      .single();
+
+    if (!caseRow) {
+      return NextResponse.json({ error: 'Case not found' }, { status: 404 });
+    }
+    if (!assertCaseAccess(caseRow, userId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await req.json();
     const { evidenceType, lookupId, subgraphSlice, annotation } = body;
 
