@@ -1,0 +1,4 @@
+## 2024-05-27 - IDOR via getSupabaseAdmin fallback
+**Vulnerability:** Insecure Direct Object Reference (IDOR) on case evidence endpoints (`GET` and `POST` in `apps/api/app/api/cases/[id]/evidence/route.ts`).
+**Learning:** `getSupabaseAdmin` was used as a fallback if `getSupabaseUserClient` failed (e.g. no user client available). This bypasses Row Level Security (RLS). Crucially, even with RLS bypassed, the endpoints lacked explicit verification that the requesting user owned or had analyst access to the `caseId` (via `assertCaseAccess`).
+**Prevention:** Never use `getSupabaseAdmin` as a fallback for user-driven endpoints. Always use `getSupabaseUserClient` and explicitly fetch the parent object (e.g. case) to verify ownership/access via `assertCaseAccess(row, userId)` before proceeding with read/write operations.
