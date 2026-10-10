@@ -728,19 +728,36 @@ export async function buildGraphVisualizationPayload(pathResults: { path: string
   const nodes = new Map<string, { id: string; type: "wallet" | "vasp" | "mixer" | "bridge" | "sanctioned"; label?: string }>();
   const edges = new Map<string, { source: string; target: string; hopIndex: number; valueUSD: number; asset: string; timestamp: string }>();
 
+  // ⚡ Bolt: Extract unique addresses to batch sanctions checks concurrently
+  const uniqueAddresses = new Set<string>();
   for (const pr of pathResults) {
-    for (let i = 0; i < pr.path.length; i++) {
-      const addr = pr.path[i].toLowerCase();
-      
-      let type: "wallet" | "vasp" | "mixer" | "bridge" | "sanctioned" = "wallet";
-      let label: string | undefined = undefined;
+    for (const addr of pr.path) {
+      uniqueAddresses.add(addr.toLowerCase());
+    }
+  }
 
+  // ⚡ Bolt: Run all sanctions checks concurrently (O(1) await instead of O(n) awaits)
+  const sanctionsMap = new Map<string, boolean>();
+  await Promise.all(
+    Array.from(uniqueAddresses).map(async (addr) => {
       let isSanc = false;
       try {
         isSanc = await checkSanctioned(addr);
       } catch (err) {
         // Ignore sanctions errors for graph visualization
       }
+      sanctionsMap.set(addr, isSanc);
+    })
+  );
+
+  for (const pr of pathResults) {
+    for (let i = 0; i < pr.path.length; i++) {
+      const addr = pr.path[i].toLowerCase();
+
+      let type: "wallet" | "vasp" | "mixer" | "bridge" | "sanctioned" = "wallet";
+      let label: string | undefined = undefined;
+
+      const isSanc = sanctionsMap.get(addr) ?? false;
       
       if (isSanc) {
         type = "sanctioned";
