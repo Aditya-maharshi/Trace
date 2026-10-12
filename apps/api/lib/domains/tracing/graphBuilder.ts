@@ -37,7 +37,6 @@ import { labelFor as labelForVasp } from "../tracing/vaspLabels";
 import { mixerLabelFor } from "../tracing/mixerLabels";
 import { checkSanctioned } from "../compliance/sanctions";
 
-
 // ──────────────────────────────────────────────────────────────────────────────
 // Canonical Token Allowlist
 // ──────────────────────────────────────────────────────────────────────────────
@@ -169,14 +168,20 @@ function normalizeTxFetch<T>(
   if (!result) {
     return {
       data: [],
-      provenance: { source: "fixture-cache", fetchedAt: new Date().toISOString() },
+      provenance: {
+        source: "fixture-cache",
+        fetchedAt: new Date().toISOString(),
+      },
       truncated: false,
     };
   }
   if (Array.isArray(result)) {
     return {
       data: result,
-      provenance: { source: "fixture-cache", fetchedAt: new Date().toISOString() },
+      provenance: {
+        source: "fixture-cache",
+        fetchedAt: new Date().toISOString(),
+      },
       truncated: false,
     };
   }
@@ -312,7 +317,10 @@ export function rankNeighborsByValue(
   const sorted = Array.from(neighborMap.entries(), ([address, val]) => {
     let totalValue: number | bigint = 0;
     if (typeof val === "object" && val !== null) {
-      const rec = val as { totalValueUSD?: number; totalValue?: bigint | number };
+      const rec = val as {
+        totalValueUSD?: number;
+        totalValue?: bigint | number;
+      };
       totalValue = rec.totalValueUSD ?? rec.totalValue ?? 0;
     } else {
       totalValue = val;
@@ -451,7 +459,10 @@ export async function findNearestVASP(
     });
   };
 
-  function isCollaborativeSpend(txs: AnyTransaction[], currentAddr: string): boolean {
+  function isCollaborativeSpend(
+    txs: AnyTransaction[],
+    currentAddr: string,
+  ): boolean {
     const inputs = new Set<string>();
     const outputs = new Set<string>();
     const outputValues = new Set<string>();
@@ -476,7 +487,7 @@ export async function findNearestVASP(
 
   const visited = new Set<string>();
   visited.add(start);
-  
+
   const mixerExposures: Array<{ address: string; hopIndex: number }> = [];
 
   const queue: QueueItem[] = [
@@ -488,11 +499,15 @@ export async function findNearestVASP(
     },
   ];
 
-  debug(`Starting BFS from ${start}, maxDepth=${maxDepth}, maxFanout=${maxFanout}`);
+  debug(
+    `Starting BFS from ${start}, maxDepth=${maxDepth}, maxFanout=${maxFanout}`,
+  );
 
   // Check if the start wallet itself is a VASP (edge case)
   if (vaspSet.has(start)) {
-    debug(`Start wallet ${start} is itself a known VASP — returning immediately`);
+    debug(
+      `Start wallet ${start} is itself a known VASP — returning immediately`,
+    );
     results.push({
       address: start,
       depth: 0,
@@ -505,7 +520,9 @@ export async function findNearestVASP(
 
   // Check if the start wallet itself is a cross-chain bridge (edge case)
   if (bridgeSet.has(start)) {
-    debug(`Start wallet ${start} is itself a known cross-chain bridge — returning immediately`);
+    debug(
+      `Start wallet ${start} is itself a known cross-chain bridge — returning immediately`,
+    );
     bridgeExitPoints.push({
       address: start,
       label: labelForBridge(start) || "Unknown Bridge",
@@ -531,7 +548,12 @@ export async function findNearestVASP(
       `Exploring depth ${current.depth}, ${queue.length} nodes queued, ` +
         `visiting ${current.address.slice(0, 10)}…`,
     );
-    onProgress?.({ type: "exploring", address: current.address, depth: current.depth, queueLength: queue.length });
+    onProgress?.({
+      type: "exploring",
+      address: current.address,
+      depth: current.depth,
+      queueLength: queue.length,
+    });
 
     // 2. Check if this node is a VASP → record it and do NOT expand further.
     //    VASP nodes are dead ends for this search: we found what we were
@@ -539,7 +561,12 @@ export async function findNearestVASP(
     //    the exchange's other customers (irrelevant noise).
     if (vaspSet.has(current.address)) {
       debug(`✓ Found VASP at depth ${current.depth}: ${current.address}`);
-      onProgress?.({ type: "vasp_found", address: current.address, depth: current.depth, path: current.path });
+      onProgress?.({
+        type: "vasp_found",
+        address: current.address,
+        depth: current.depth,
+        path: current.path,
+      });
       results.push({
         address: start,
         depth: current.depth,
@@ -553,7 +580,9 @@ export async function findNearestVASP(
     // 2b. Check if this node is a cross-chain bridge → record exit point and do NOT expand further.
     //     Funds left Ethereum mainnet through this bridge; further Ethereum hops are irrelevant.
     if (bridgeSet.has(current.address)) {
-      debug(`✓ Found Bridge exit at depth ${current.depth}: ${current.address}`);
+      debug(
+        `✓ Found Bridge exit at depth ${current.depth}: ${current.address}`,
+      );
       bridgeExitPoints.push({
         address: current.address,
         label: labelForBridge(current.address) || "Unknown Bridge",
@@ -567,8 +596,14 @@ export async function findNearestVASP(
     //    Nodes AT maxDepth have already been checked for VASP above;
     //    we just don't expand their children.
     if (current.depth >= maxDepth) {
-      debug(`⏹ Reached maxDepth=${maxDepth} at ${current.address.slice(0, 10)}… — pruning`);
-      onProgress?.({ type: "pruned", address: current.address, reason: "maxDepth" });
+      debug(
+        `⏹ Reached maxDepth=${maxDepth} at ${current.address.slice(0, 10)}… — pruning`,
+      );
+      onProgress?.({
+        type: "pruned",
+        address: current.address,
+        reason: "maxDepth",
+      });
       continue;
     }
 
@@ -585,10 +620,15 @@ export async function findNearestVASP(
       const [ethRaw, tokenRaw] = await Promise.all([
         getTransactions(current.address),
         getTokenTransactions(current.address).catch((err) => {
-          debug(`⚠ getTokenTransactions failed for ${current.address.slice(0, 10)}…: ${err}`);
+          debug(
+            `⚠ getTokenTransactions failed for ${current.address.slice(0, 10)}…: ${err}`,
+          );
           return {
             data: [],
-            provenance: { source: "fixture-cache", fetchedAt: new Date().toISOString() },
+            provenance: {
+              source: "fixture-cache",
+              fetchedAt: new Date().toISOString(),
+            },
             truncated: false,
           } as FetchResult<TokenTransaction>;
         }),
@@ -618,7 +658,11 @@ export async function findNearestVASP(
       debug(
         `⚠ getTransactions failed for ${current.address.slice(0, 10)}…: ${err}`,
       );
-      onProgress?.({ type: "pruned", address: current.address, reason: "fetch_error" });
+      onProgress?.({
+        type: "pruned",
+        address: current.address,
+        reason: "fetch_error",
+      });
       continue;
     }
 
@@ -628,10 +672,22 @@ export async function findNearestVASP(
 
     // 4.5. Pre-clustering filter for collaborative spends (CoinJoin / Unlabelled Mixers)
     // If the node acts as a mixer, we tag it and sever the branch (do not enqueue neighbors).
-    if (isCollaborativeSpend(transactions, current.address) && current.depth > 0) {
-      debug(`⚠ Detected collaborative spend / unlabelled mixer at depth ${current.depth}: ${current.address}. Severing branch.`);
-      mixerExposures.push({ address: current.address, hopIndex: current.depth });
-      onProgress?.({ type: "pruned", address: current.address, reason: "maxDepth" }); // Emitting as pruned for UI
+    if (
+      isCollaborativeSpend(transactions, current.address) &&
+      current.depth > 0
+    ) {
+      debug(
+        `⚠ Detected collaborative spend / unlabelled mixer at depth ${current.depth}: ${current.address}. Severing branch.`,
+      );
+      mixerExposures.push({
+        address: current.address,
+        hopIndex: current.depth,
+      });
+      onProgress?.({
+        type: "pruned",
+        address: current.address,
+        reason: "maxDepth",
+      }); // Emitting as pruned for UI
       continue;
     }
     // Extract neighbor count from the upcoming neighborMap (we compute it just below)
@@ -641,15 +697,27 @@ export async function findNearestVASP(
       const seen = new Set<string>();
       const cur = current.address.toLowerCase();
       for (const tx of transactions) {
-        const f = tx.from.toLowerCase(), t = tx.to.toLowerCase();
-        if (f !== t) { if (f === cur) seen.add(t); else if (t === cur) seen.add(f); }
+        const f = tx.from.toLowerCase(),
+          t = tx.to.toLowerCase();
+        if (f !== t) {
+          if (f === cur) seen.add(t);
+          else if (t === cur) seen.add(f);
+        }
       }
       return seen.size;
     })();
-    onProgress?.({ type: "fetched", address: current.address, txCount: transactions.length, neighborCount: _neighborCountForProgress });
+    onProgress?.({
+      type: "fetched",
+      address: current.address,
+      txCount: transactions.length,
+      neighborCount: _neighborCountForProgress,
+    });
 
     // 5. Extract all unique neighbors and aggregate their normalized USD transaction values & structuring stats
-    const neighborMap = extractNormalizedNeighbors(transactions, current.address);
+    const neighborMap = extractNormalizedNeighbors(
+      transactions,
+      current.address,
+    );
 
     // 6. Union ranking: split budget (e.g. 10 value, 5 structuring for maxFanout=15).
     //    This ensures structured flows are explored even when individual transfers
@@ -706,7 +774,11 @@ export async function findNearestVASP(
   debug(
     `BFS complete. Found ${results.length} VASP path(s), visited ${visited.size} nodes total.`,
   );
-  onProgress?.({ type: "done", totalVisited: visited.size, resultsFound: results.length });
+  onProgress?.({
+    type: "done",
+    totalVisited: visited.size,
+    resultsFound: results.length,
+  });
 
   const finalResult = results as BfsResult;
   finalResult.bridgeExitPoints = bridgeExitPoints;
@@ -724,24 +796,59 @@ export async function findNearestVASP(
   return finalResult;
 }
 
-export async function buildGraphVisualizationPayload(pathResults: { path: string[] }[]) {
-  const nodes = new Map<string, { id: string; type: "wallet" | "vasp" | "mixer" | "bridge" | "sanctioned"; label?: string }>();
-  const edges = new Map<string, { source: string; target: string; hopIndex: number; valueUSD: number; asset: string; timestamp: string }>();
+export async function buildGraphVisualizationPayload(
+  pathResults: { path: string[] }[],
+) {
+  const nodes = new Map<
+    string,
+    {
+      id: string;
+      type: "wallet" | "vasp" | "mixer" | "bridge" | "sanctioned";
+      label?: string;
+    }
+  >();
+  const edges = new Map<
+    string,
+    {
+      source: string;
+      target: string;
+      hopIndex: number;
+      valueUSD: number;
+      asset: string;
+      timestamp: string;
+    }
+  >();
+
+  // Pre-fetch sanctions for all unique addresses concurrently
+  const uniqueAddresses = new Set<string>();
+  for (const pr of pathResults) {
+    for (const p of pr.path) {
+      uniqueAddresses.add(p.toLowerCase());
+    }
+  }
+
+  const sanctionsMap = new Map<string, boolean>();
+  await Promise.all(
+    Array.from(uniqueAddresses).map(async (addr) => {
+      try {
+        sanctionsMap.set(addr, await checkSanctioned(addr));
+      } catch (err) {
+        // Ignore sanctions errors for graph visualization
+        sanctionsMap.set(addr, false);
+      }
+    }),
+  );
 
   for (const pr of pathResults) {
     for (let i = 0; i < pr.path.length; i++) {
       const addr = pr.path[i].toLowerCase();
-      
-      let type: "wallet" | "vasp" | "mixer" | "bridge" | "sanctioned" = "wallet";
+
+      let type: "wallet" | "vasp" | "mixer" | "bridge" | "sanctioned" =
+        "wallet";
       let label: string | undefined = undefined;
 
-      let isSanc = false;
-      try {
-        isSanc = await checkSanctioned(addr);
-      } catch (err) {
-        // Ignore sanctions errors for graph visualization
-      }
-      
+      let isSanc = sanctionsMap.get(addr) ?? false;
+
       if (isSanc) {
         type = "sanctioned";
       } else if (labelForVasp(addr)) {
@@ -769,7 +876,7 @@ export async function buildGraphVisualizationPayload(pathResults: { path: string
             hopIndex: i,
             valueUSD: 0,
             asset: "ETH",
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
         }
       }
@@ -783,6 +890,6 @@ export async function buildGraphVisualizationPayload(pathResults: { path: string
   return {
     nodes: nodesArr.slice(0, 50),
     edges: edgesArr.slice(0, 100),
-    truncated
+    truncated,
   };
 }
