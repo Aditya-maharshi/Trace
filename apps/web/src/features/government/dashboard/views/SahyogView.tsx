@@ -15,8 +15,14 @@ export function SahyogView() {
           <p className="text-white/50 text-sm mt-1">Prepared payloads awaiting portal credentials.</p>
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={refetch} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white" title="Refresh">
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <button
+            onClick={refetch}
+            className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            title="Refresh queue"
+            aria-label="Refresh queue"
+            disabled={loading}
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden="true" />
           </button>
         </div>
       </div>
