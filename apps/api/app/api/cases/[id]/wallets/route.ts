@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const client = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
+  const client = getSupabaseUserClient(req.headers.get('authorization') || '');
   if (!client) {
     return NextResponse.json({ error: 'Database service unavailable' }, { status: 500 });
   }
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   try {
     // Ownership check before mutation
-    const ownerClient = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
+    const ownerClient = getSupabaseUserClient(req.headers.get('authorization') || '');
     if (ownerClient) {
       const { data: caseRow } = await ownerClient
         .from('cases')
@@ -126,7 +126,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   }
 
   // Ownership check before mutation
-  const ownerClient = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
+  const ownerClient = getSupabaseUserClient(req.headers.get('authorization') || '');
   if (ownerClient) {
     const { data: caseRow } = await ownerClient
       .from('cases')

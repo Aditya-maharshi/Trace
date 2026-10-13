@@ -1,0 +1,4 @@
+## 2026-10-13 - IDOR Vulnerability via Admin Fallback
+**Vulnerability:** IDOR (Insecure Direct Object Reference) in case management APIs. `getSupabaseAdmin()` was used as a fallback for `getSupabaseUserClient()` when user client initialization failed (or when it explicitly fell back).
+**Learning:** Returning `getSupabaseAdmin()` effectively bypassed Row Level Security (RLS) entirely, giving the caller superuser privileges. This meant a user could manipulate cases they didn't own by hitting endpoints like `/api/cases/[id]/export` or `/api/cases/[id]/wallets`.
+**Prevention:** Never use `getSupabaseAdmin()` as a fallback for user-driven actions. If a user client cannot be initialized, the request must fail securely, not escalate privileges. Always instantiate user clients for user-facing API routes.
