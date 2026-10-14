@@ -1,0 +1,4 @@
+## 2024-10-14 - Fix IDOR in Case Evidence API
+**Vulnerability:** The GET and POST evidence API routes (`apps/api/app/api/cases/[id]/evidence/route.ts`) imported the `assertCaseAccess` function but never called it. This allowed any authenticated user to view or modify evidence for any case ID.
+**Learning:** Authorization checks cannot rely solely on the framework (Next.js middleware) or the database (Row Level Security via `getSupabaseAdmin` fallback); the application logic must explicitly verify that the authenticated user owns or has access to the requested object before fetching or inserting related records.
+**Prevention:** Always assert ownership explicitly in the handler. Do not fall back to `getSupabaseAdmin()` for user-driven mutations or queries. Enforce the calling of authorization helpers (like `assertCaseAccess(caseRow, userId)`) and ensure early exit with a 403 Forbidden response.

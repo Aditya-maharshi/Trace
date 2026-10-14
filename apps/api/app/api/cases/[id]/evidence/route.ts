@@ -1,29 +1,54 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { extractVerifiedUserIdAsync } from '../../../../../lib/domains/auth/verifyJwt';
-import { assertCaseAccess } from '../../../../../lib/domains/cases/caseStore';
-import { pinEvidence } from '../../../../../lib/domains/cases/caseStore';
-import { withApiVersionHeaders } from '../../../../../lib/domains/core/apiVersion';
-import { getSupabaseAdmin , getSupabaseUserClient } from '../../../../../lib/domains/core/auditLog';
+import { NextRequest, NextResponse } from "next/server";
+import { extractVerifiedUserIdAsync } from "../../../../../lib/domains/auth/verifyJwt";
+import { assertCaseAccess } from "../../../../../lib/domains/cases/caseStore";
+import { pinEvidence } from "../../../../../lib/domains/cases/caseStore";
+import { withApiVersionHeaders } from "../../../../../lib/domains/core/apiVersion";
+import {
+  getSupabaseAdmin,
+  getSupabaseUserClient,
+} from "../../../../../lib/domains/core/auditLog";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const authHeader = req.headers.get('authorization') || '';
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const authHeader = req.headers.get("authorization") || "";
   const userId = await extractVerifiedUserIdAsync(authHeader);
 
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const client = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
+  const client =
+    getSupabaseUserClient(req.headers.get("authorization") || "") ||
+    getSupabaseAdmin(); // Fallback if no user client
   if (!client) {
-    return NextResponse.json({ error: 'Database service unavailable' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Database service unavailable" },
+      { status: 500 },
+    );
   }
 
   try {
+    // Ownership check: verify user has access to this case
+    const { data: caseRow } = await client
+      .from("cases")
+      .select("user_id, analyst_id")
+      .eq("id", params.id)
+      .single();
+
+    if (!caseRow) {
+      return NextResponse.json({ error: "Case not found" }, { status: 404 });
+    }
+    if (!assertCaseAccess(caseRow, userId)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { data: evidence, error } = await client
-      .from('case_evidence')
-      .select('*')
-      .eq('case_id', params.id)
-      .order('pinned_at', { ascending: false });
+      .from("case_evidence")
+      .select("*")
+      .eq("case_id", params.id)
+      .order("pinned_at", { ascending: false });
 
     if (error) throw error;
 
@@ -33,30 +58,65 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     });
   } catch (err: any) {
     console.error(`[GET /api/cases/${params.id}/evidence] Error:`, err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const authHeader = req.headers.get('authorization') || '';
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const authHeader = req.headers.get("authorization") || "";
   const userId = await extractVerifiedUserIdAsync(authHeader);
 
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    // Ownership check before mutation
+    const ownerClient =
+      getSupabaseUserClient(req.headers.get("authorization") || "") ||
+      getSupabaseAdmin();
+    if (ownerClient) {
+      const { data: caseRow } = await ownerClient
+        .from("cases")
+        .select("user_id, analyst_id")
+        .eq("id", params.id)
+        .single();
+      if (!caseRow) {
+        return NextResponse.json({ error: "Case not found" }, { status: 404 });
+      }
+      if (!assertCaseAccess(caseRow, userId)) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+
     const body = await req.json();
     const { evidenceType, lookupId, subgraphSlice, annotation } = body;
 
     if (!evidenceType) {
-      return NextResponse.json({ error: 'evidenceType is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "evidenceType is required" },
+        { status: 400 },
+      );
     }
 
-    const validTypes = ['graph_node', 'graph_edge', 'subgraph_slice', 'lookup_snapshot', 'note'];
+    const validTypes = [
+      "graph_node",
+      "graph_edge",
+      "subgraph_slice",
+      "lookup_snapshot",
+      "note",
+    ];
     if (!validTypes.includes(evidenceType)) {
       return NextResponse.json(
-        { error: `Invalid evidenceType. Must be one of: ${validTypes.join(', ')}` },
+        {
+          error: `Invalid evidenceType. Must be one of: ${validTypes.join(", ")}`,
+        },
         { status: 400 },
       );
     }
@@ -80,6 +140,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     });
   } catch (err: any) {
     console.error(`[POST /api/cases/${params.id}/evidence] Error:`, err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
