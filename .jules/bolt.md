@@ -1,3 +1,3 @@
-## 2025-02-12 - Concurrent Fetches in attribution score loop
-**Learning:** The nested `for` loop in `aggregateAttributions` of `apps/api/lib/domains/tracing/attribution.ts` did a sequential N+1 `await` fetching for each transaction hop, potentially leading to slow scoring. This codebase pattern should aggregate unique addresses and `Promise.all` the fetch array.
-**Action:** When finding a performance bottleneck related to loops involving network fetching (like blockchain data via Etherscan/Blockscout adapters), always try to extract variables and `Promise.all` them concurrently outside of inner loops.
+## 2024-10-14 - Prevent N+1 queries when building graph visualization
+**Learning:** Found sequential `await checkSanctioned(addr)` network calls inside a double nested loop in `buildGraphVisualizationPayload` resulting in an N+1 performance bottleneck.
+**Action:** When building graph nodes from a list of paths, aggregate all unique addresses into a Set upfront and resolve their data concurrently using `Promise.all` before mapping them into graph structures.
