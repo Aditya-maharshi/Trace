@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractVerifiedUserIdAsync } from '../../../../../lib/domains/auth/verifyJwt';
-import { assertCaseAccess } from '../../../../../lib/domains/cases/caseStore';
+import { assertCaseAccess, getCaseDetails } from '../../../../../lib/domains/cases/caseStore';
 import { pinEvidence } from '../../../../../lib/domains/cases/caseStore';
 import { withApiVersionHeaders } from '../../../../../lib/domains/core/apiVersion';
 import { getSupabaseAdmin , getSupabaseUserClient } from '../../../../../lib/domains/core/auditLog';
@@ -13,12 +13,21 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const client = getSupabaseUserClient(req.headers.get('authorization') || '') || getSupabaseAdmin(); // Fallback if no user client
+  const client = getSupabaseUserClient(req.headers.get('authorization') || '');
   if (!client) {
     return NextResponse.json({ error: 'Database service unavailable' }, { status: 500 });
   }
 
   try {
+    const details = await getCaseDetails(params.id);
+    if (!details) {
+      return NextResponse.json({ error: 'Case not found' }, { status: 404 });
+    }
+
+    if (!assertCaseAccess(details.case, userId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { data: evidence, error } = await client
       .from('case_evidence')
       .select('*')
@@ -46,6 +55,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   try {
+    const details = await getCaseDetails(params.id);
+    if (!details) {
+      return NextResponse.json({ error: 'Case not found' }, { status: 404 });
+    }
+
+    if (!assertCaseAccess(details.case, userId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await req.json();
     const { evidenceType, lookupId, subgraphSlice, annotation } = body;
 
