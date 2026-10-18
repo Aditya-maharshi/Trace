@@ -1,0 +1,4 @@
+## 2025-05-18 - Prevent IDOR by Valdiating Access and Removing RLS Fallbacks
+**Vulnerability:** IDOR vulnerability and potential privilege escalation were found in API endpoints (e.g., `apps/api/app/api/cases/[id]/evidence/route.ts`). Endpoints failed to verify `assertCaseAccess` before reading or mutating evidence and improperly used `getSupabaseAdmin()` as a fallback for `getSupabaseUserClient()` if an admin client was missing.
+**Learning:** Returning a boolean from `assertCaseAccess` requires explicit checking; it doesn't automatically abort the request. Further, using `getSupabaseAdmin()` in a user-driven route bypasses RLS and could leak data across tenants or allow unauthorized mutations.
+**Prevention:** Always assert `caseRow` access before querying or mutating data. Never use `getSupabaseAdmin()` as a fallback in user-driven endpoints; if RLS requires user context, ensure only `getSupabaseUserClient()` is used.
